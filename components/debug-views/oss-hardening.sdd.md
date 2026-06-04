@@ -2,7 +2,7 @@
 
 ## Intent
 
-Make `threejs-debug-compose` credible as a public package, not just a working local demo. The core architecture is already strong; this plan hardens contributor trust, release confidence, repository hygiene, and consumer-facing verification.
+Make `threejs-debug-view` credible as a public package, not just a working local demo. The core architecture is already strong; this plan hardens contributor trust, release confidence, repository hygiene, and consumer-facing verification.
 
 ## Current Truth
 

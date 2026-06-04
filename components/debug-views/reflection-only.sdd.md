@@ -29,14 +29,14 @@ What we should NOT copy blindly:
 - Do not build this as an app query-param-only branch. This library already has `DebugViewSource`, `DEFAULT_DEBUG_VIEWS`, render plans, and viewport composition.
 - Do not fake reflection by subtracting arbitrary colors in a post pass. Reflection/specular isolation needs material/light/environment behavior to be rendered under controlled material conditions.
 
-### threejs-debug-compose current architecture
+### threejs-debug-view current architecture
 
 Source studied:
-- `G:/Antonio Bonet/threejs-debug-compose/components/debug-views/debug-view-definitions.ts`
-- `G:/Antonio Bonet/threejs-debug-compose/components/debug-views/debug-render-plan.ts`
-- `G:/Antonio Bonet/threejs-debug-compose/components/debug-views/debug-views-post.tsx`
-- `G:/Antonio Bonet/threejs-debug-compose/components/debug-views/debug-views-tsl/default-debug-nodes.ts`
-- `G:/Antonio Bonet/threejs-debug-compose/components/debug-views/debug-views-tsl/compositor.ts`
+- `G:/Antonio Bonet/threejs-debug-view/components/debug-views/debug-view-definitions.ts`
+- `G:/Antonio Bonet/threejs-debug-view/components/debug-views/debug-render-plan.ts`
+- `G:/Antonio Bonet/threejs-debug-view/components/debug-views/debug-views-post.tsx`
+- `G:/Antonio Bonet/threejs-debug-view/components/debug-views/debug-views-tsl/default-debug-nodes.ts`
+- `G:/Antonio Bonet/threejs-debug-view/components/debug-views/debug-views-tsl/compositor.ts`
 
 Current built-in debug views fall into three buckets:
 - MRT scene outputs: normal, albedo, scalar material channels.
@@ -48,8 +48,8 @@ Current built-in debug views fall into three buckets:
 ### Three.js r184 TSL/material evidence
 
 Source studied:
-- `G:/Antonio Bonet/threejs-debug-compose/node_modules/.pnpm/three@0.184.0/node_modules/three/src/nodes/accessors/MaterialNode.js`
-- `G:/Antonio Bonet/threejs-debug-compose/node_modules/.pnpm/three@0.184.0/node_modules/three/src/nodes/accessors/MaterialProperties.js`
+- `G:/Antonio Bonet/threejs-debug-view/node_modules/.pnpm/three@0.184.0/node_modules/three/src/nodes/accessors/MaterialNode.js`
+- `G:/Antonio Bonet/threejs-debug-view/node_modules/.pnpm/three@0.184.0/node_modules/three/src/nodes/accessors/MaterialProperties.js`
 
 Available material nodes include:
 - `materialReflectivity`

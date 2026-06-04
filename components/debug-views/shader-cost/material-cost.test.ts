@@ -80,6 +80,18 @@ describe("material complexity scoring", () => {
     expect(glass).toBeLessThanOrEqual(1)
   })
 
+  it("invalidates cache when physical feature toggles change", () => {
+    const material = new MeshPhysicalMaterial()
+    const first = getMaterialComplexity(material)
+
+    material.sheen = 1
+
+    const second = getMaterialComplexity(material)
+
+    expect(second.signature).not.toBe(first.signature)
+    expect(second.cost).toBeGreaterThan(first.cost)
+  })
+
   it("invalidates cache when material signature changes", () => {
     const material = new MeshStandardMaterial()
     const first = getMaterialComplexity(material)
@@ -90,6 +102,37 @@ describe("material complexity scoring", () => {
     const second = getMaterialComplexity(material)
 
     expect(getMaterialComplexityCacheSize()).toBe(1)
+    expect(second.signature).not.toBe(first.signature)
+    expect(second.cost).toBeGreaterThan(first.cost)
+  })
+
+  it("invalidates cache when texture resolution changes", () => {
+    const texture = { image: { width: 256, height: 256 } } as any
+    const material = new MeshStandardMaterial({ map: texture })
+    const first = getMaterialComplexity(material)
+
+    texture.image.width = 2048
+    texture.image.height = 2048
+
+    const second = getMaterialComplexity(material)
+
+    expect(second.signature).not.toBe(first.signature)
+    expect(second.cost).toBeGreaterThan(first.cost)
+  })
+
+  it("invalidates cache when custom shader uniform count changes", () => {
+    const material = new ShaderMaterial({
+      uniforms: { time: { value: 0 } },
+    })
+    const first = getMaterialComplexity(material)
+
+    material.uniforms = {
+      u1: { value: 0 }, u2: { value: 0 }, u3: { value: 0 },
+      u4: { value: 0 }, u5: { value: 0 }, u6: { value: 0 },
+    }
+
+    const second = getMaterialComplexity(material)
+
     expect(second.signature).not.toBe(first.signature)
     expect(second.cost).toBeGreaterThan(first.cost)
   })

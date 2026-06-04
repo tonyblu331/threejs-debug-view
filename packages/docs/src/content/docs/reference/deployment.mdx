@@ -11,8 +11,8 @@ The docs package lives in `packages/docs` and is deployed with GitHub Actions.
 pnpm typecheck
 pnpm test
 pnpm build
-pnpm --filter @threejs-debug-compose/docs dev
-pnpm --filter @threejs-debug-compose/docs build
+pnpm --filter @threejs-debug-view/docs dev
+pnpm --filter @threejs-debug-view/docs build
 ```
 
 For package and docs confidence in one local pass:
@@ -34,7 +34,7 @@ The Astro config uses the repository Pages URL:
 ```ts
 export default defineConfig({
   site: "https://tonyblu331.github.io",
-  base: "/threejs-debug-compose",
+  base: "/threejs-debug-view",
 })
 ```
 

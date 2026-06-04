@@ -11,11 +11,11 @@ Each view is a small render source: the UI chooses a view, the render plan resol
 Use the controls in the top-right panel to switch `activeView`, change layouts, and compare diagnostics.
 The scene includes the Damaged Helmet model plus material samples for the estimated shader-complexity heatmap.
 
-[Open the Three.js demo in a new tab](/threejs-debug-compose/demo/)
+[Open the Three.js demo in a new tab](/threejs-debug-view/demo/)
 
 <iframe
-  src="/threejs-debug-compose/demo/"
-  title="threejs-debug-compose live demo"
+  src="/threejs-debug-view/demo/"
+  title="threejs-debug-view live demo"
   loading="lazy"
   style={{
     border: "1px solid var(--sl-color-gray-5)",
@@ -76,8 +76,8 @@ Demand-driven override passes add another scene render only when the selected la
 ## Compose example
 
 ```tsx
-import { DEFAULT_DEBUG_VIEWS } from "threejs-debug-compose"
-import { DebugViews } from "threejs-debug-compose/react"
+import { DEFAULT_DEBUG_VIEWS } from "threejs-debug-view"
+import { DebugViews } from "threejs-debug-view/react"
 
 <DebugViews
   views={DEFAULT_DEBUG_VIEWS}

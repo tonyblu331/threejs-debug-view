@@ -1,6 +1,6 @@
 {
-  "name": "threejs-debug-compose",
-  "version": "0.1.1",
+  "name": "threejs-debug-view",
+  "version": "0.1.2",
   "description": "Composable TSL debug views for Three.js WebGPU render pipelines.",
   "license": "MIT",
   "type": "module",
@@ -18,12 +18,16 @@
       "types": "./dist/types/react.d.ts",
       "import": "./dist/react.js"
     },
+    "./react-controls": {
+      "types": "./dist/types/react-controls.d.ts",
+      "import": "./dist/react-controls.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
     "dist",
-    "assets/readme-compose-banner.png",
-    "assets/viewport-compose-quad.png",
+    "assets/readme-debug-view-banner.png",
+    "assets/viewport-debug-view-quad.png",
     "LICENSE",
     "README.md"
   ],
@@ -37,9 +41,9 @@
     "test": "vitest run",
     "verify": "pnpm typecheck && pnpm test && pnpm build && pnpm docs:build",
     "prepublishOnly": "pnpm typecheck && pnpm test && pnpm build",
-    "docs:dev": "pnpm --filter @threejs-debug-compose/docs dev",
-    "docs:build": "pnpm --filter @threejs-debug-compose/docs build",
-    "docs:preview": "pnpm --filter @threejs-debug-compose/docs preview"
+    "docs:dev": "pnpm --filter @threejs-debug-view/docs dev",
+    "docs:build": "pnpm --filter @threejs-debug-view/docs build",
+    "docs:preview": "pnpm --filter @threejs-debug-view/docs preview"
   },
   "peerDependencies": {
     "@react-three/drei": ">=10",
@@ -84,12 +88,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tonyblu331/threejs-debug-compose.git"
+    "url": "git+https://github.com/tonyblu331/threejs-debug-view.git"
   },
   "bugs": {
-    "url": "https://github.com/tonyblu331/threejs-debug-compose/issues"
+    "url": "https://github.com/tonyblu331/threejs-debug-view/issues"
   },
-  "homepage": "https://github.com/tonyblu331/threejs-debug-compose#readme",
+  "homepage": "https://github.com/tonyblu331/threejs-debug-view#readme",
   "keywords": [
     "threejs",
     "webgpu",

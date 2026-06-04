@@ -6,7 +6,7 @@ This feature must not pretend to expose a native GPU instruction count.
 
 Three.js + browser WebGPU can provide:
 
-- generated shader / material program signals
+- material program signals
 - render-pass outputs
 - overdraw-style debug passes
 - optional GPU timestamp query timing where supported
@@ -15,7 +15,7 @@ It cannot reliably provide:
 
 - per-material native GPU instruction count
 - per-pixel real hardware shader cost
-- exact loop/sample cost for arbitrary custom TSL/POM without shader-source or explicit metadata
+- exact loop/sample cost for arbitrary custom TSL/POM without stable generated-source access or explicit metadata
 
 So the correct target is:
 
@@ -40,40 +40,38 @@ Other engines split this problem instead of solving it with one number:
 
 ## Four Approaches Toward the Most Real Version
 
-### Approach 1: Generated Shader Source Complexity
+### Approach 1: Material Program-Signal Complexity
 
 **Question answered:** how complex is the shader program?
 
-Use generated TSL/WGSL/GLSL when accessible, then derive complexity from the emitted shader source.
+Use deterministic material/program signals that are available at runtime. Do not keep a GLSL/WGSL/TSL parser fallback unless Three.js exposes stable generated source access.
 
 Signals:
 
-- fragment shader source length
-- texture sampling count
-- branch count
-- loop count
-- function call count
-- derivative usage
-- discard/alpha-test usage
-- known expensive functions
+- material family
+- texture slot count and texture resolution class
+- transparency and alpha testing
+- clipping
+- physical material features
+- custom `ShaderMaterial` uniform count
 
-Why this is better than hardcoded weights:
+Why this is the correct baseline:
 
-- custom TSL nodes become visible through generated shader code
-- POM can be detected by loops / repeated texture sampling
-- material type is no longer the only source of truth
+- it matches what the runtime can inspect today
+- it avoids pretending source parsing exists
+- it keeps the view deterministic and cheap
 
 Limits:
 
-- source complexity is still not native hardware instruction count
+- material signals are still not native hardware instruction count
+- custom shader loops and texture samples are not visible without stable source access
 - compiler optimization and GPU architecture can change real cost
-- runtime loop iteration count may be data dependent
 
 Acceptance:
 
-- no hardcoded per-material cost table
-- custom TSL shader produces a different complexity score when generated source changes
-- POM-like shader with looped texture reads scores higher than flat texture shader
+- custom `ShaderMaterial` can score above basic material through explicit inspectable signals
+- PBR, texture, transparency, and physical feature signals are reflected
+- docs state that source parsing is not implemented
 
 ### Approach 2: Transparent Overdraw / Layer Pressure
 
@@ -118,7 +116,7 @@ Signals:
 
 Why this matters:
 
-- source complexity can be wrong
+- estimated material complexity can be wrong
 - GPU timing can expose texture bandwidth, blending, and driver/compiler effects
 
 Limits:
@@ -143,7 +141,7 @@ Provide an expert path for RenderDoc/browser GPU debugging instead of pretending
 Signals:
 
 - draw calls
-- generated shaders
+- generated shaders, when available from external tooling
 - pipeline state
 - render targets
 - overdraw inspection where available
@@ -171,8 +169,7 @@ Acceptance:
 
 ```mermaid
 flowchart LR
-  A["Generated TSL/WGSL/GLSL"] --> B["Shader Source Complexity"]
-  C["Material Program Signals"] --> B
+  C["Material Program Signals"] --> B["Estimated Material Complexity"]
   D["Overdraw Pass"] --> E["Layer Pressure"]
   F["Timestamp Queries"] --> G["Measured GPU Timing"]
   H["External Capture"] --> I["Ground Truth Investigation"]
@@ -210,13 +207,12 @@ Relevant files:
 Owns:
 
 - material program-signal extraction
-- generated WGSL/GLSL/TSL source analysis when available
+- generated-source analysis only if stable runtime access becomes available
 - explainability payloads for "why is this object hot?"
 
 Relevant files:
 
 - `components/debug-views/shader-cost/material-cost.ts`
-- future: `components/debug-views/shader-cost/shader-source-cost.ts`
 - future: `components/debug-views/shader-cost/shader-cost-explain.ts`
 
 ### Skill 3: Overdraw / Pixel Pressure
@@ -290,18 +286,19 @@ Done when:
 - tests assert relative complexity plus cheap-band sanity for simple primitives
 - default material/render-state fields do not dominate the score
 
-### Slice 2: Replace Weight Table With Program/Shader Signals
+### Slice 2: Replace Weight Table With Program Signals
 
 - Remove per-material magic weights.
 - Use material program signals immediately.
-- Add generated shader source analysis when Three exposes enough shader builder state.
+- Do not add generated shader source analysis until Three exposes enough shader builder state.
 - Preserve a debug explanation payload: `why is this object hot?`
 
-### Phase 2: Generated Shader Source Analysis
+### Phase 2: Optional Generated Source Analysis
 
 Goal: make custom TSL and POM visible.
 
 - Investigate stable access to generated shader source from Three's render pipeline.
+- Keep this out of the shipped fallback path until that access is proven stable.
 - Add source analyzer for:
   - texture sample calls
   - loops
@@ -315,7 +312,7 @@ Done when:
 
 - custom TSL changes can alter complexity score
 - POM-like shader scores above flat texture shader
-- fallback remains material signals when source is unavailable
+- material signals remain the baseline when source is unavailable
 
 ### Slice 3: Add Overdraw / Layer Pressure
 

@@ -61,6 +61,7 @@ export interface DebugViewsProps {
   showLabels?: boolean
   viewportLabels?: DebugViewportLabels
   overlayOpacity?: number
+  renderPriority?: number
   enabled?: boolean
 }
 
@@ -76,6 +77,7 @@ export function DebugViews({
   showLabels = false,
   viewportLabels,
   overlayOpacity = 0.35,
+  renderPriority = 1,
   enabled = true,
 }: DebugViewsProps) {
   const layoutOptions = useMemo(
@@ -98,6 +100,7 @@ export function DebugViews({
       showLabels={showLabels}
       viewportLabels={viewportLabels}
       overlayOpacity={overlayOpacity}
+      renderPriority={renderPriority}
     />
   )
 }
@@ -112,6 +115,7 @@ interface DebugViewsPipelineProps {
   showLabels: boolean
   viewportLabels?: DebugViewportLabels
   overlayOpacity: number
+  renderPriority: number
 }
 
 function DebugViewsPipeline({
@@ -124,6 +128,7 @@ function DebugViewsPipeline({
   showLabels,
   viewportLabels,
   overlayOpacity,
+  renderPriority,
 }: DebugViewsPipelineProps) {
   const { camera, gl, scene } = useThree()
   const uniforms = useMemo(() => createDebugViewUniforms(), [])
@@ -195,7 +200,7 @@ function DebugViewsPipeline({
     } finally {
       scene.background = previousBackground
     }
-  }, 1)
+  }, renderPriority)
 
   return (
     <>

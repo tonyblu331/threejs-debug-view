@@ -3,19 +3,19 @@ import starlight from "@astrojs/starlight"
 
 export default defineConfig({
   site: "https://tonyblu331.github.io",
-  base: "/threejs-debug-compose",
+  base: "/threejs-debug-view",
   integrations: [
     starlight({
-      title: "threejs-debug-compose",
+      title: "threejs-debug-view",
       description: "Composable TSL debug views for Three.js WebGPU render pipelines.",
       editLink: {
-        baseUrl: "https://github.com/tonyblu331/threejs-debug-compose/edit/master/packages/docs/",
+        baseUrl: "https://github.com/tonyblu331/threejs-debug-view/edit/master/packages/docs/",
       },
       social: [
         {
           icon: "github",
           label: "GitHub",
-          href: "https://github.com/tonyblu331/threejs-debug-compose",
+          href: "https://github.com/tonyblu331/threejs-debug-view",
         },
       ],
       sidebar: [

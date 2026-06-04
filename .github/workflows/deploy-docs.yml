@@ -47,10 +47,10 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build live demo
-        run: pnpm exec vite build --base /threejs-debug-compose/demo/ --outDir packages/docs/public/demo --emptyOutDir
+        run: pnpm exec vite build --base /threejs-debug-view/demo/ --outDir packages/docs/public/demo --emptyOutDir
 
       - name: Build docs
-        run: pnpm --filter @threejs-debug-compose/docs build
+        run: pnpm --filter @threejs-debug-view/docs build
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

@@ -25,6 +25,7 @@ export interface MaterialCostCache {
 
 const MAX_CACHE_SIZE = 1000
 const MAX_EXPECTED_COMPLEXITY = 20
+const DEFAULT_TEXTURE_DIMENSION = 1024
 
 const TEXTURE_SLOTS = [
   "map",
@@ -110,7 +111,7 @@ function analyzeDeclarative(material: Material) {
   const signals: string[] = []
 
   if (material instanceof MeshPhysicalMaterial) {
-    signalCount += 3
+    signalCount += 4
     signals.push("type:physical-lit", "lighting:pbr", "brdf:physical")
   } else if (material instanceof MeshStandardMaterial) {
     signalCount += 2
@@ -183,11 +184,13 @@ function analyzeDeclarative(material: Material) {
 }
 
 function getTextureResolutionWeight(texture: Texture): number {
-  const width = (texture.image as any)?.width || (texture.source as any)?.data?.width || 1024
-  
-  if (width >= 2048) return 1.5
-  if (width >= 1024) return 1.25
-  if (width <= 256) return 0.75
+  const { width, height } = getTextureDimensions(texture)
+  const maxDimension = Math.max(width, height)
+  const texelCount = width * height
+
+  if (maxDimension >= 2048 || texelCount >= 2048 * 2048) return 1.5
+  if (maxDimension >= 1024 || texelCount >= 1024 * 1024) return 1.25
+  if (maxDimension <= 256 && texelCount <= 256 * 256) return 0.75
   return 1.0
 }
 
@@ -200,17 +203,40 @@ function buildSignature(material: Material): string {
   }
   
   for (const slot of TEXTURE_SLOTS) {
-    if (getProperty(material, slot)) {
-      sig += `:${slot}`
+    const texture = getProperty<Texture | undefined>(material, slot)
+    if (texture) {
+      const { width, height } = getTextureDimensions(texture)
+      sig += `:${slot}:${width}x${height}`
     }
   }
   
   if (material instanceof MeshPhysicalMaterial) {
     if (material.transmission > 0) sig += ":TX"
     if (material.clearcoat > 0) sig += ":CC"
+    if (material.iridescence > 0) sig += ":IR"
+    if (material.sheen > 0) sig += ":SH"
+  }
+
+  if (material instanceof ShaderMaterial) {
+    sig += `:U${Object.keys(material.uniforms).length}`
   }
   
   return sig
+}
+
+function getTextureDimensions(texture: Texture) {
+  const image = texture.image as Partial<{ width: number; height: number }> | undefined
+  const sourceData = texture.source?.data as Partial<{ width: number; height: number }> | undefined
+  const width = getPositiveDimension(image?.width ?? sourceData?.width)
+  const height = getPositiveDimension(image?.height ?? sourceData?.height)
+
+  return { width, height }
+}
+
+function getPositiveDimension(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) && value > 0
+    ? value
+    : DEFAULT_TEXTURE_DIMENSION
 }
 
 function hasAnyTexture(material: Material): boolean {

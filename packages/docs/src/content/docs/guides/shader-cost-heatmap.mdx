@@ -7,8 +7,8 @@ The `shaderCost` view renders the scene with temporary bucketed override materia
 Use it to find programs/materials that are likely more complex than their neighbors before you reach for a dedicated GPU profiler.
 
 ```tsx
-import { DEFAULT_DEBUG_VIEWS } from "threejs-debug-compose"
-import { DebugViews } from "threejs-debug-compose/react"
+import { DEFAULT_DEBUG_VIEWS } from "threejs-debug-view"
+import { DebugViews } from "threejs-debug-view/react"
 
 <DebugViews
   views={DEFAULT_DEBUG_VIEWS}
@@ -36,11 +36,10 @@ The heatmap is normalized from `0` to `1`:
 The scorer infers active program/material signals that commonly produce heavier shader paths:
 
 - material/program type
-- active texture slots and sampler state
+- active texture slots and texture resolution class
 - transparency and alpha testing
 - physical features such as transmission, clearcoat, sheen, and iridescence
-- raw `ShaderMaterial` source signals, including active `defines` branches
-- generated TSL/WGSL shader-source signals when available in future versions
+- custom `ShaderMaterial` signals based on uniform count
 
 The raw signal count is normalized against a stable global signal scale and mapped into a bounded bucket material set.
 That keeps the override pass predictable instead of creating one material per mesh.
@@ -68,4 +67,5 @@ Use a lower `resolutionScale` when the heatmap is a diagnostic companion rather 
 ## Limits
 
 The view answers “which visible programs/materials look more complex?” It does not answer “how many milliseconds did this draw cost?”
+It also does not parse GLSL/WGSL/TSL source in this version.
 For timing, validate with browser GPU tooling, renderer stats, or a frame profiler.
