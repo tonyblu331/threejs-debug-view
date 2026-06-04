@@ -8,6 +8,7 @@ export default defineConfig({
     starlight({
       title: "threejs-debug-view",
       description: "Composable TSL debug views for Three.js WebGPU render pipelines.",
+      customCss: ["./src/styles/theme.css"],
       editLink: {
         baseUrl: "https://github.com/tonyblu331/threejs-debug-view/edit/master/packages/docs/",
       },

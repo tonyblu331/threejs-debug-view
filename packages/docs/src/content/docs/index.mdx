@@ -3,7 +3,7 @@ title: threejs-debug-view
 description: Composable TSL debug views for Three.js WebGPU render pipelines.
 template: splash
 hero:
-  tagline: Inspect Three.js WebGPU render outputs without wiring one-off debug branches.
+  tagline: Inspect Three.js WebGPU render output from one small debug layer.
   actions:
     - text: Quick Start
       link: /threejs-debug-view/guides/quick-start/
@@ -13,13 +13,19 @@ hero:
       icon: external
 ---
 
-`threejs-debug-view` adds a focused debug layer for Three.js WebGPU scenes.
-Use it to switch between beauty, normals, depth, material channels, wireframe, lighting-only, reflection-only, and estimated shader-cost views while keeping the render path predictable.
+`threejs-debug-view` gives you named debug views for the buffers your scene already produces: beauty, normals, depth, material channels, wireframe, lighting-only, reflection-only, and estimated shader cost.
+
+Use the root package for core helpers and TSL view definitions. Use `threejs-debug-view/r3f` when you want the overlay inside a React Three Fiber `<Canvas>`.
+
+## R3F adapter
+
+The R3F adapter is the React UI layer. It mounts `DebugViews` in your canvas, reads the active R3F renderer, and exposes optional Leva controls through `useDebugViewsControls`.
+
+Keep it behind your app's dev flag unless you intentionally publish a debug surface.
 
 ## Live demo
 
 Use the controls in the top-right panel to switch views, layouts, opacity, and pane count.
-The demo uses the same Damaged Helmet scene and shader-cost samples from the tested Vite app.
 
 [Open the demo in a new tab](/threejs-debug-view/demo/)
 
@@ -27,13 +33,7 @@ The demo uses the same Damaged Helmet scene and shader-cost samples from the tes
   src="/threejs-debug-view/demo/"
   title="threejs-debug-view live demo"
   loading="eager"
-  style={{
-    border: "1px solid var(--sl-color-gray-5)",
-    borderRadius: "0.75rem",
-    height: "min(72vh, 720px)",
-    minHeight: "520px",
-    width: "100%",
-  }}
+  class="debug-demo-frame"
 />
 
 :::note
@@ -46,5 +46,5 @@ The demo needs browser WebGPU support. When native WebGPU is unavailable, the ba
 - **Render layouts** for single, overlay, split, row, column, and grid presentations.
 - **Viewport mode** for fixed pane assignments, labels, per-pane cameras, and predictable resolution scaling.
 - **Custom TSL views** for shader-specific inspection without forking the built-in source list.
-- **R3F adapter** through `threejs-debug-view/r3f`, with the root package kept React-free.
+- **R3F adapter** for mounting the overlay and optional Leva controls inside a React Three Fiber app.
 

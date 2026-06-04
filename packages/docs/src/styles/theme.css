@@ -1,0 +1,122 @@
+@layer starlight.overrides {
+  :root,
+  ::backdrop {
+    --sl-color-accent-low: hsl(0, 0%, 16%);
+    --sl-color-accent: hsl(0, 0%, 88%);
+    --sl-color-accent-high: hsl(0, 0%, 100%);
+    --sl-color-text-accent: var(--sl-color-white);
+    --sl-color-bg-accent: var(--sl-color-white);
+    --sl-color-text-invert: var(--sl-color-black);
+
+    --sl-color-blue-low: hsl(0, 0%, 16%);
+    --sl-color-blue: hsl(0, 0%, 72%);
+    --sl-color-blue-high: hsl(0, 0%, 96%);
+    --sl-color-purple-low: hsl(0, 0%, 16%);
+    --sl-color-purple: hsl(0, 0%, 72%);
+    --sl-color-purple-high: hsl(0, 0%, 96%);
+    --sl-color-green-low: hsl(0, 0%, 16%);
+    --sl-color-green: hsl(0, 0%, 72%);
+    --sl-color-green-high: hsl(0, 0%, 96%);
+    --sl-color-orange-low: hsl(0, 0%, 16%);
+    --sl-color-orange: hsl(0, 0%, 72%);
+    --sl-color-orange-high: hsl(0, 0%, 96%);
+    --sl-color-red-low: hsl(0, 0%, 16%);
+    --sl-color-red: hsl(0, 0%, 72%);
+    --sl-color-red-high: hsl(0, 0%, 96%);
+  }
+
+  :root[data-theme="light"],
+  [data-theme="light"] ::backdrop {
+    --sl-color-accent-low: hsl(0, 0%, 92%);
+    --sl-color-accent: hsl(0, 0%, 0%);
+    --sl-color-accent-high: hsl(0, 0%, 0%);
+    --sl-color-text-accent: hsl(0, 0%, 0%);
+    --sl-color-bg-accent: hsl(0, 0%, 0%);
+    --sl-color-text-invert: hsl(0, 0%, 100%);
+
+    --sl-color-blue-low: hsl(0, 0%, 92%);
+    --sl-color-blue: hsl(0, 0%, 32%);
+    --sl-color-blue-high: hsl(0, 0%, 0%);
+    --sl-color-purple-low: hsl(0, 0%, 92%);
+    --sl-color-purple: hsl(0, 0%, 32%);
+    --sl-color-purple-high: hsl(0, 0%, 0%);
+    --sl-color-green-low: hsl(0, 0%, 92%);
+    --sl-color-green: hsl(0, 0%, 32%);
+    --sl-color-green-high: hsl(0, 0%, 0%);
+    --sl-color-orange-low: hsl(0, 0%, 92%);
+    --sl-color-orange: hsl(0, 0%, 32%);
+    --sl-color-orange-high: hsl(0, 0%, 0%);
+    --sl-color-red-low: hsl(0, 0%, 92%);
+    --sl-color-red: hsl(0, 0%, 32%);
+    --sl-color-red-high: hsl(0, 0%, 0%);
+  }
+
+  .sl-link-button,
+  button,
+  input,
+  select,
+  textarea {
+    border-radius: 0 !important;
+  }
+
+  .sl-link-button.primary {
+    background: var(--sl-color-white);
+    border-color: var(--sl-color-white);
+    color: var(--sl-color-black);
+  }
+
+  .sl-link-button.secondary {
+    border-color: var(--sl-color-gray-2);
+    color: var(--sl-color-white);
+  }
+
+  :root[data-theme="light"] .sl-link-button.primary {
+    background: hsl(0, 0%, 0%);
+    border-color: hsl(0, 0%, 0%);
+    color: hsl(0, 0%, 100%);
+  }
+
+  :root[data-theme="light"] .sl-link-button.secondary {
+    border-color: hsl(0, 0%, 0%);
+    color: hsl(0, 0%, 0%);
+  }
+
+  .debug-demo-frame {
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0;
+    height: min(72vh, 720px);
+    min-height: 520px;
+    width: 100%;
+  }
+
+  .expressive-code,
+  .expressive-code :where(pre, code, figure, figcaption, mark, ins, del),
+  .expressive-code .copy :where(button, div),
+  .expressive-code .feedback,
+  .starlight-aside,
+  .pagination-links a {
+    border-radius: 0 !important;
+  }
+
+  .expressive-code .ec-line :where(span[style^="--"]:not([class])),
+  .expressive-code .ec-line :where(span[style^="--"]:not([class])) * {
+    background-color: transparent !important;
+    color: var(--sl-color-text) !important;
+    text-decoration-color: var(--sl-color-text) !important;
+  }
+
+  .expressive-code {
+    --ec-codeBg: var(--sl-color-gray-6) !important;
+    --ec-codeFg: var(--sl-color-text) !important;
+    --ec-codeSelBg: var(--sl-color-gray-5) !important;
+    --ec-focusBrd: var(--sl-color-white) !important;
+    --ec-frm-tooltipSuccessBg: var(--sl-color-white) !important;
+    --ec-frm-tooltipSuccessFg: var(--sl-color-black) !important;
+    --ec-tm-insBg: transparent !important;
+    --ec-tm-insBrdCol: var(--sl-color-gray-3) !important;
+    --ec-tm-delBg: transparent !important;
+    --ec-tm-delBrdCol: var(--sl-color-gray-3) !important;
+    --ec-tm-markBg: transparent !important;
+    --ec-tm-markBrdCol: var(--sl-color-gray-3) !important;
+  }
+}

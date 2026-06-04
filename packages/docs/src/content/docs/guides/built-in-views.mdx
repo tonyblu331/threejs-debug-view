@@ -1,34 +1,12 @@
 ---
 title: Built-in Views
-description: Understand the default debug sources, when each pass runs, and try the live Three.js demo.
+description: Understand the default debug sources and when each pass runs.
 ---
 
 The built-in views are the default diagnostics exported by `DEFAULT_DEBUG_VIEWS`.
 Each view is a small render source: the UI chooses a view, the render plan resolves only the required passes, and the compositor presents the result.
 
-## Live demo
-
-Use the controls in the top-right panel to switch `activeView`, change layouts, and compare diagnostics.
-The scene includes the Damaged Helmet model plus material samples for the estimated shader-complexity heatmap.
-
-[Open the Three.js demo in a new tab](/threejs-debug-view/demo/)
-
-<iframe
-  src="/threejs-debug-view/demo/"
-  title="threejs-debug-view live demo"
-  loading="lazy"
-  style={{
-    border: "1px solid var(--sl-color-gray-5)",
-    borderRadius: "0.75rem",
-    height: "min(72vh, 720px)",
-    minHeight: "520px",
-    width: "100%",
-  }}
-/>
-
-:::note
-The demo needs browser WebGPU support. When native WebGPU is unavailable, the app reports the active fallback backend in the bottom-left badge.
-:::
+Try them in the [homepage demo](/threejs-debug-view/).
 
 ## Scene buffers
 

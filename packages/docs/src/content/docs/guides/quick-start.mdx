@@ -3,9 +3,16 @@ title: Quick Start
 description: Add the debug view overlay and switch between built-in views.
 ---
 
-Import `DebugViews` from the R3F entrypoint and pass a list of debug view definitions.
+Install the package with the R3F peers you already use in a Three.js React app.
+
+```bash
+pnpm add threejs-debug-view three react react-dom @react-three/fiber @react-three/drei leva
+```
+
+Use `threejs-debug-view/r3f` for React Three Fiber. The root package stays React-free.
 
 ```tsx
+import { DEFAULT_DEBUG_VIEWS } from "threejs-debug-view"
 import { DebugViews } from "threejs-debug-view/r3f"
 
 function DebugLayer() {
@@ -16,12 +23,7 @@ function DebugLayer() {
 function DebugControls() {
   return (
     <DebugViews
-      views={[
-        { label: "Beauty", source: "beauty", mode: "passthrough" },
-        { label: "Normal", source: "normal", mode: "passthrough" },
-        { label: "Depth", source: "depth", mode: "depth" },
-        { label: "Base Color / Albedo", source: "albedo", mode: "passthrough" },
-      ]}
+      views={DEFAULT_DEBUG_VIEWS}
       layout="single"
       activeView={0}
     />
@@ -29,16 +31,14 @@ function DebugControls() {
 }
 ```
 
-Keep the overlay behind your app's dev flag unless you intentionally expose debug views in production.
-
-For the demo controls, use the bundled Leva helper:
+For Leva controls, use the bundled hook from the same R3F entrypoint:
 
 ```tsx
-import { getDebugViewLabels } from "threejs-debug-view"
+import { DEFAULT_DEBUG_VIEWS, getDebugViewLabels } from "threejs-debug-view"
 import { useDebugViewsControls } from "threejs-debug-view/r3f"
 
 const controls = useDebugViewsControls({
-  viewLabels: getDebugViewLabels(),
+  viewLabels: getDebugViewLabels(DEFAULT_DEBUG_VIEWS),
 })
 ```
 
