@@ -3,12 +3,11 @@ import {
   DEFAULT_DEBUG_VIEWS,
   getDebugViewLabels,
   type DebugView,
-  type DebugViewsMode,
-  type LayoutMode,
 } from "@/components/debug-views"
 import {
   DebugViews,
 } from "../../components/debug-views/r3f"
+import type { DebugControlValues } from "./debug-control-values"
 
 const VIEW_LABELS = getDebugViewLabels()
 const FORCE_SHADER_COST_VIEW =
@@ -16,17 +15,7 @@ const FORCE_SHADER_COST_VIEW =
   new URLSearchParams(window.location.search).get("debugView") === "shaderCost"
 
 interface DebugOverlayProps {
-  controls: {
-    activeView: unknown
-    columns: unknown
-    enabled: boolean
-    layout: unknown
-    mode: unknown
-    overlayOpacity: unknown
-    rows: unknown
-    showLabels: boolean
-    slots: unknown
-  }
+  controls: DebugControlValues
   viewLabels?: string[]
 }
 
@@ -45,14 +34,14 @@ export function DebugOverlay({ controls, viewLabels = VIEW_LABELS }: DebugOverla
   return (
     <DebugViews
       views={views}
-      mode={controls.mode as DebugViewsMode}
+      mode={controls.mode}
       activeView={activeView}
-      layout={controls.layout as LayoutMode}
-      slots={controls.slots as number}
-      columns={controls.columns as number}
-      rows={controls.rows as number}
+      layout={controls.layout}
+      slots={controls.slots}
+      columns={controls.columns}
+      rows={controls.rows}
       showLabels={controls.showLabels}
-      overlayOpacity={controls.overlayOpacity as number}
+      overlayOpacity={controls.overlayOpacity}
       enabled={controls.enabled}
     />
   )

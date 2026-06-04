@@ -1,41 +1,24 @@
 import { lazy, Suspense, useState } from "react"
-import { Leva } from "leva"
 import { getDebugViewLabels } from "@/components/debug-views"
-import { useDebugViewsControls } from "@/components/debug-views/r3f"
 import { WebGpuCanvas } from "./components/WebGpuCanvas"
+import { DEFAULT_DEBUG_CONTROLS, type DebugControlValues } from "./components/debug-control-values"
 import { Scene } from "./components/Scene"
 
 const enableDebugOverlay = import.meta.env.DEV || import.meta.env.VITE_DEBUG_VIEW_DEMO === "true"
 const DEBUG_VIEW_LABELS = getDebugViewLabels()
 
-const neutralLevaTheme = {
-  colors: {
-    elevation1: "#050505",
-    elevation2: "#111111",
-    elevation3: "#1c1c1c",
-    accent1: "#2a2a2a",
-    accent2: "#d8d8d8",
-    accent3: "#ffffff",
-    highlight1: "#7a7a7a",
-    highlight2: "#d8d8d8",
-    highlight3: "#ffffff",
-    vivid1: "#ffffff",
-  },
-  radii: {
-    xs: "0px",
-    sm: "0px",
-    lg: "0px",
-  },
-  shadows: {
-    level1: "none",
-    level2: "none",
-  },
-}
-
 const DevDebugOverlay = enableDebugOverlay
   ? lazy(() =>
       import("./components/DebugOverlay").then(({ DebugOverlay }) => ({
         default: DebugOverlay,
+      })),
+    )
+  : null
+
+const DevDebugControls = enableDebugOverlay
+  ? lazy(() =>
+      import("./components/DebugControls").then(({ DebugControls }) => ({
+        default: DebugControls,
       })),
     )
   : null
@@ -106,7 +89,7 @@ function DefaultScene({ onBackendChange }: SceneShellProps) {
 }
 
 function DebugScene({ onBackendChange }: SceneShellProps) {
-  const debugControls = useDebugViewsControls({ viewLabels: DEBUG_VIEW_LABELS })
+  const [debugControls, setDebugControls] = useState<DebugControlValues>(DEFAULT_DEBUG_CONTROLS)
 
   return (
     <>
@@ -125,7 +108,14 @@ function DebugScene({ onBackendChange }: SceneShellProps) {
         </Suspense>
       </WebGpuCanvas>
 
-      <Leva collapsed={false} flat theme={neutralLevaTheme} />
+      <Suspense fallback={null}>
+        {DevDebugControls ? (
+          <DevDebugControls
+            onChange={setDebugControls}
+            viewLabels={DEBUG_VIEW_LABELS}
+          />
+        ) : null}
+      </Suspense>
     </>
   )
 }
