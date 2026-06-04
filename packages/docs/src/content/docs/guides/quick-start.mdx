@@ -6,7 +6,7 @@ description: Add the debug view overlay and switch between built-in views.
 Import `DebugViews` from the React entrypoint and pass a list of debug view definitions.
 
 ```tsx
-import { DebugViews } from "threejs-debug-view/react"
+import { DebugViews } from "threejs-debug-view/r3f"
 
 <DebugViews
   views={[
@@ -24,7 +24,7 @@ For the demo controls, use the bundled Leva helper:
 
 ```tsx
 import { getDebugViewLabels } from "threejs-debug-view"
-import { useDebugViewsControls } from "threejs-debug-view/react-controls"
+import { useDebugViewsControls } from "threejs-debug-view/r3f"
 
 const controls = useDebugViewsControls({
   viewLabels: getDebugViewLabels(),

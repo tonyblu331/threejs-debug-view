@@ -17,8 +17,7 @@ export default defineConfig({
     lib: {
       entry: {
         index: resolve(__dirname, "components/debug-views/index.ts"),
-        react: resolve(__dirname, "components/debug-views/react.ts"),
-        "react-controls": resolve(__dirname, "components/debug-views/react-controls.ts"),
+        r3f: resolve(__dirname, "components/debug-views/r3f.ts"),
       },
       formats: ["es"],
     },

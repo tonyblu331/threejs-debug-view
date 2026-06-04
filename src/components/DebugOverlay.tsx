@@ -9,7 +9,7 @@ import {
 import {
   DebugViews,
   useDebugViewsControls,
-} from "../../components/debug-views/react"
+} from "../../components/debug-views/r3f"
 
 const VIEW_LABELS = getDebugViewLabels()
 

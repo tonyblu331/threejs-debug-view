@@ -5,7 +5,7 @@ description: Public types and helpers exposed by the debug view package.
 
 ## `DebugViews`
 
-Main React component for presenting debug views. Import it from `threejs-debug-view/react`; the root package export stays React-free for core helpers and types.
+Main React component for presenting debug views. Import it from `threejs-debug-view/r3f`; the root package export stays React-free for core helpers and types.
 
 ```ts
 type DebugViewsMode = "compose" | "viewport"
@@ -55,7 +55,7 @@ Built-in `DebugViewSource` values include `shaderCost`, which uses `mode: "heatm
 
 ## Package Shape
 
-The root package export is for core helpers, planning utilities, TSL compositor helpers, and public types. The `/react` entrypoint contains React/R3F integration and keeps `useDebugViewsControls()` for compatibility. Prefer `/react-controls` when a consumer only needs the Leva controls hook.
+The root package export is for core helpers, planning utilities, TSL compositor helpers, and public types. The `/r3f` entrypoint contains the React Three Fiber component and Leva controls.
 
 The repository demo and docs are separate from the package source:
 
@@ -70,4 +70,4 @@ The repository demo and docs are separate from the package source:
 - `createDebugViewportRenderGraphPlan()`
 - `createDebugViewportLabels()`
 - `createDebugViewportRects()`
-- `useDebugViewsControls()` from `threejs-debug-view/react-controls`
+- `useDebugViewsControls()` from `threejs-debug-view/r3f`

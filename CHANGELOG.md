@@ -5,10 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-06-05
+
+### Changed
+- Consolidated the React Three Fiber adapter under `threejs-debug-view/r3f`.
+
+### Breaking
+- Replace `threejs-debug-view/react` and `threejs-debug-view/react-controls` imports with `threejs-debug-view/r3f`.
+
 ## [0.1.2] - 2026-06-05
 
 ### Added
-- Tree-shake-friendly `threejs-debug-view/react-controls` entrypoint for Leva-only imports.
+- Dedicated controls entrypoint for Leva-only imports.
 
 ### Changed
 - Renamed the public package, docs, repository links, and shipped README assets to `threejs-debug-view`.

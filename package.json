@@ -1,6 +1,6 @@
 {
   "name": "threejs-debug-view",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Composable TSL debug views for Three.js WebGPU render pipelines.",
   "license": "MIT",
   "type": "module",
@@ -14,13 +14,9 @@
       "types": "./dist/types/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./react": {
-      "types": "./dist/types/react.d.ts",
-      "import": "./dist/react.js"
-    },
-    "./react-controls": {
-      "types": "./dist/types/react-controls.d.ts",
-      "import": "./dist/react-controls.js"
+    "./r3f": {
+      "types": "./dist/types/r3f.d.ts",
+      "import": "./dist/r3f.js"
     },
     "./package.json": "./package.json"
   },
