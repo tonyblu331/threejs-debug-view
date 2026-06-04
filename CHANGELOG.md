@@ -7,7 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.1] - 2026-06-05
 
+### Added
+- Documented the calibrated shader complexity and GPU timing roadmap.
+
+### Changed
+- Refactored shader complexity scoring around structured material features and prediction.
+
 ### Fixed
+- Accounted for alpha-hashed and risky basic-material render states in shader complexity scoring.
 - Kept the demo debug overlay dev-only by default.
 
 ## [0.2.0] - 2026-06-05

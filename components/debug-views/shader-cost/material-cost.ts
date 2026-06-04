@@ -1,4 +1,5 @@
 import {
+  FrontSide,
   Material,
   MeshBasicMaterial,
   MeshLambertMaterial,
@@ -7,14 +8,43 @@ import {
   MeshPhysicalMaterial,
   MeshStandardMaterial,
   MeshToonMaterial,
+  NormalBlending,
   ShaderMaterial,
   Texture,
 } from "three"
 
 export interface MaterialCostEntry {
   cost: number
+  features?: ShaderCostFeatures
   signature: string
   signals: readonly string[]
+}
+
+export type MaterialFamily =
+  | "basic"
+  | "lambert"
+  | "matcap"
+  | "node"
+  | "phong"
+  | "physical"
+  | "shader"
+  | "standard"
+  | "toon"
+  | "unknown"
+
+export type TransparencyMode = "opaque" | "alphaTest" | "transparent"
+
+export interface ShaderCostFeatures {
+  materialFamily: MaterialFamily
+  textureSlots: number
+  weightedTexelLoad: number
+  dependentTextureRisk: number
+  transparencyMode: TransparencyMode
+  physicalLobes: number
+  branchRisk: number
+  discardRisk: number
+  renderStateRisk: number
+  customUniforms: number
 }
 
 export interface MaterialCostCache {
@@ -24,7 +54,7 @@ export interface MaterialCostCache {
 }
 
 const MAX_CACHE_SIZE = 1000
-const MAX_EXPECTED_COMPLEXITY = 20
+const REFERENCE_HIGH_COST = 18
 const DEFAULT_TEXTURE_DIMENSION = 1024
 
 const TEXTURE_SLOTS = [
@@ -39,19 +69,6 @@ const TEXTURE_SLOTS = [
   "emissiveMap",
   "alphaMap",
 ] as const
-
-const TEXTURE_WEIGHTS: Record<string, number> = {
-  normalMap: 1.5,
-  envMap: 1.5,
-  transmissionMap: 1.5,
-  map: 1.0,
-  roughnessMap: 1.0,
-  metalnessMap: 1.0,
-  clearcoatMap: 1.0,
-  aoMap: 0.5,
-  emissiveMap: 0.5,
-  alphaMap: 0.5,
-}
 
 class BoundedCache {
   private map = new Map<string, MaterialCostEntry>()
@@ -87,100 +104,237 @@ export function getMaterialComplexity(material: Material): MaterialCostEntry {
     return cached
   }
 
-  if (material instanceof MeshBasicMaterial && !hasAnyTexture(material)) {
-    const result: MaterialCostEntry = { cost: 0, signature, signals: ["type:basic-unlit"] }
+  if (isZeroCostBasicMaterial(material)) {
+    const features = extractMaterialCostFeatures(material)
+    const result: MaterialCostEntry = {
+      cost: 0,
+      features,
+      signature,
+      signals: createMaterialCostSignals(features),
+    }
     cache.set(material.uuid, result)
     return result
   }
 
-  const analysis = analyzeDeclarative(material)
-  const normalizedCost = Math.min(1, analysis.signalCount / MAX_EXPECTED_COMPLEXITY)
-  
+  const features = extractMaterialCostFeatures(material)
+
   const result: MaterialCostEntry = {
-    cost: normalizedCost,
+    cost: predictMaterialCost(features),
+    features,
     signature,
-    signals: analysis.signals,
+    signals: createMaterialCostSignals(features),
   }
 
   cache.set(material.uuid, result)
   return result
 }
 
-function analyzeDeclarative(material: Material) {
-  let signalCount = 0
-  const signals: string[] = []
+export function extractMaterialCostFeatures(material: Material): ShaderCostFeatures {
+  const materialFamily = getMaterialFamily(material)
+  const transparencyMode = getTransparencyMode(material)
+  const physicalLobes = getPhysicalLobeCount(material)
+  const customUniforms = material instanceof ShaderMaterial
+    ? Object.keys(material.uniforms).length
+    : 0
+  const textureProfile = getTextureProfile(material)
 
-  if (material instanceof MeshPhysicalMaterial) {
-    signalCount += 4
-    signals.push("type:physical-lit", "lighting:pbr", "brdf:physical")
-  } else if (material instanceof MeshStandardMaterial) {
-    signalCount += 2
-    signals.push("type:standard-lit", "lighting:pbr")
-  } else if (material instanceof ShaderMaterial) {
-    signalCount += 2
-    signals.push("type:custom-shader")
-    
-    const uniformCount = Object.keys(material.uniforms).length
-    if (uniformCount > 5) {
-      signalCount += 1
-      signals.push(`custom-uniforms:${uniformCount}`)
-    }
-    if (uniformCount > 10) signalCount += 1
-  } else if (material instanceof MeshPhongMaterial || material instanceof MeshToonMaterial) {
-    signalCount += 1
-    signals.push("type:per-pixel-lit")
-  } else if (material instanceof MeshLambertMaterial || material instanceof MeshMatcapMaterial) {
-    signalCount += 1
-    signals.push("type:per-vertex-lit")
+  return {
+    materialFamily,
+    textureSlots: textureProfile.slots,
+    weightedTexelLoad: textureProfile.weightedTexelLoad,
+    dependentTextureRisk: textureProfile.dependentTextureRisk,
+    transparencyMode,
+    physicalLobes,
+    branchRisk: getBranchRisk(material, transparencyMode, customUniforms),
+    discardRisk: transparencyMode === "alphaTest" ? 1 : 0,
+    renderStateRisk: getRenderStateRisk(material),
+    customUniforms,
+  }
+}
+
+export function predictMaterialCost(features: ShaderCostFeatures): number {
+  if (
+    features.materialFamily === "basic" &&
+    features.textureSlots === 0 &&
+    features.transparencyMode === "opaque" &&
+    features.renderStateRisk === 0
+  ) {
+    return 0
   }
 
-  if (material.transparent) {
-    signalCount += 2
-    signals.push("transparent:true")
+  const programCost =
+    getFamilyCost(features.materialFamily) +
+    getTextureCost(features) +
+    features.physicalLobes * 1.15 +
+    features.branchRisk * 1.25 +
+    features.discardRisk * 1.75 +
+    features.renderStateRisk * 0.85 +
+    Math.min(2, features.customUniforms / 8)
+
+  return clamp01(Math.log1p(programCost) / Math.log1p(REFERENCE_HIGH_COST))
+}
+
+function getMaterialFamily(material: Material): MaterialFamily {
+  if (isNodeMaterial(material)) return "node"
+  if (material instanceof MeshPhysicalMaterial) return "physical"
+  if (material instanceof MeshStandardMaterial) return "standard"
+  if (material instanceof ShaderMaterial) return "shader"
+  if (material instanceof MeshPhongMaterial) return "phong"
+  if (material instanceof MeshToonMaterial) return "toon"
+  if (material instanceof MeshLambertMaterial) return "lambert"
+  if (material instanceof MeshMatcapMaterial) return "matcap"
+  if (material instanceof MeshBasicMaterial) return "basic"
+  return "unknown"
+}
+
+function getFamilyCost(family: MaterialFamily): number {
+  switch (family) {
+    case "basic":
+      return 0.3
+    case "lambert":
+    case "matcap":
+      return 1.2
+    case "phong":
+    case "toon":
+      return 1.8
+    case "standard":
+      return 2.6
+    case "physical":
+      return 4.2
+    case "node":
+      return 2.8
+    case "shader":
+      return 2.4
+    case "unknown":
+      return 1.4
   }
-  
-  const alphaTest = getNumericProperty(material, "alphaTest")
-  if (alphaTest > 0) {
-    signalCount += 2
-    signals.push("alphaTest:active")
-  }
-  
-  const clippingPlanes = getArrayProperty(material, "clippingPlanes")
-  if (clippingPlanes.length > 0) {
-    signalCount += 1
-    signals.push("clipping:active")
-  }
+}
+
+function getTransparencyMode(material: Material): TransparencyMode {
+  if (material.transparent) return "transparent"
+  return getNumericProperty(material, "alphaTest") > 0 || getBooleanProperty(material, "alphaHash")
+    ? "alphaTest"
+    : "opaque"
+}
+
+function getPhysicalLobeCount(material: Material): number {
+  if (!(material instanceof MeshPhysicalMaterial)) return 0
+
+  let lobes = 0
+  if (material.transmission > 0) lobes += 1
+  if (material.clearcoat > 0) lobes += 1
+  if (material.iridescence > 0) lobes += 1
+  if (material.sheen > 0) lobes += 1
+  return lobes
+}
+
+function getTextureProfile(material: Material) {
+  let slots = 0
+  let weightedTexelLoad = 0
+  let dependentTextureRisk = 0
 
   for (const slot of TEXTURE_SLOTS) {
     const texture = getProperty<Texture | undefined>(material, slot)
-    if (texture) {
-      const baseWeight = TEXTURE_WEIGHTS[slot] ?? 1.0
-      const resolutionWeight = getTextureResolutionWeight(texture)
-      signalCount += baseWeight * resolutionWeight
-      signals.push(`texture:${slot}:w${resolutionWeight}`)
-    }
+    if (!texture) continue
+
+    slots += 1
+    const resolutionWeight = getTextureResolutionWeight(texture)
+    weightedTexelLoad += getTextureSlotCost(slot) * resolutionWeight
+    dependentTextureRisk += getDependentTextureRisk(slot)
   }
 
-  if (material instanceof MeshPhysicalMaterial) {
-    if (material.transmission > 0) {
-      signalCount += 2
-      signals.push("transmission:active")
-    }
-    if (material.clearcoat > 0) {
-      signalCount += 1
-      signals.push("clearcoat:active")
-    }
-    if (material.iridescence > 0) {
-      signalCount += 1
-      signals.push("iridescence:active")
-    }
-    if (material.sheen > 0) {
-      signalCount += 1
-      signals.push("sheen:active")
-    }
+  return { dependentTextureRisk, slots, weightedTexelLoad }
+}
+
+function getTextureCost(features: ShaderCostFeatures): number {
+  return features.weightedTexelLoad + features.dependentTextureRisk * 0.8
+}
+
+function getTextureSlotCost(slot: string): number {
+  if (slot === "normalMap" || slot === "envMap" || slot === "transmissionMap") return 1.5
+  if (slot === "aoMap" || slot === "emissiveMap" || slot === "alphaMap") return 0.55
+  return 1
+}
+
+function getDependentTextureRisk(slot: string): number {
+  return slot === "normalMap" || slot === "transmissionMap" ? 1 : 0
+}
+
+function getBranchRisk(
+  material: Material,
+  transparencyMode: TransparencyMode,
+  customUniforms: number,
+): number {
+  let risk = 0
+  if (transparencyMode !== "opaque") risk += 1
+  if (getArrayProperty(material, "clippingPlanes").length > 0) risk += 1
+  if (customUniforms > 5) risk += 1
+  if (customUniforms > 10) risk += 1
+  return risk
+}
+
+function getRenderStateRisk(material: Material): number {
+  let risk = 0
+  if (getArrayProperty(material, "clippingPlanes").length > 0) risk += 1
+  if (material.side !== FrontSide) risk += 0.5
+  if (material.blending !== NormalBlending) risk += 0.5
+  return risk
+}
+
+function isZeroCostBasicMaterial(material: Material): material is MeshBasicMaterial {
+  if (!(material instanceof MeshBasicMaterial)) return false
+
+  const features = extractMaterialCostFeatures(material)
+  return (
+    features.textureSlots === 0 &&
+    features.transparencyMode === "opaque" &&
+    features.branchRisk === 0 &&
+    features.discardRisk === 0 &&
+    features.renderStateRisk === 0
+  )
+}
+
+function isNodeMaterial(material: Material): boolean {
+  const flags = material as unknown as Record<string, unknown>
+  return flags.isNodeMaterial === true || flags.isMeshStandardNodeMaterial === true
+}
+
+function createMaterialCostSignals(features: ShaderCostFeatures): string[] {
+  const signals: string[] = [`family:${features.materialFamily}`]
+
+  if (features.materialFamily === "basic" && features.textureSlots === 0) {
+    signals.push("type:basic-unlit")
   }
 
-  return { signalCount, signals }
+  if (features.materialFamily === "physical") {
+    signals.push("lighting:pbr", "brdf:physical")
+  } else if (features.materialFamily === "standard") {
+    signals.push("lighting:pbr")
+  } else if (features.materialFamily === "shader") {
+    signals.push("type:custom-shader")
+  } else if (features.materialFamily === "node") {
+    signals.push("type:node-material")
+  }
+
+  if (features.textureSlots > 0) signals.push(`textures:${features.textureSlots}`)
+  if (features.weightedTexelLoad > 0) {
+    signals.push(`weighted-texel-load:${roundSignal(features.weightedTexelLoad)}`)
+  }
+  if (features.dependentTextureRisk > 0) {
+    signals.push(`dependent-texture-risk:${features.dependentTextureRisk}`)
+  }
+  if (features.transparencyMode !== "opaque") {
+    signals.push(`transparency:${features.transparencyMode}`)
+  }
+  if (features.physicalLobes > 0) signals.push(`physical-lobes:${features.physicalLobes}`)
+  if (features.branchRisk > 0) signals.push(`branch-risk:${features.branchRisk}`)
+  if (features.discardRisk > 0) signals.push("discard-risk:alpha-test")
+  if (features.renderStateRisk > 0) {
+    signals.push(`render-state-risk:${roundSignal(features.renderStateRisk)}`)
+  }
+  if (features.customUniforms > 0) signals.push(`custom-uniforms:${features.customUniforms}`)
+
+  return signals
 }
 
 function getTextureResolutionWeight(texture: Texture): number {
@@ -198,8 +352,12 @@ function buildSignature(material: Material): string {
   let sig = `${material.type}:${material.uuid}:${material.side}:${material.blending}`
   
   if (material.transparent) sig += ":T"
+  if (getBooleanProperty(material, "alphaHash")) sig += ":H"
   if (getNumericProperty(material, "alphaTest") > 0) {
     sig += `:A${getNumericProperty(material, "alphaTest")}`
+  }
+  if (getArrayProperty(material, "clippingPlanes").length > 0) {
+    sig += `:C${getArrayProperty(material, "clippingPlanes").length}`
   }
   
   for (const slot of TEXTURE_SLOTS) {
@@ -239,12 +397,12 @@ function getPositiveDimension(value: unknown): number {
     : DEFAULT_TEXTURE_DIMENSION
 }
 
-function hasAnyTexture(material: Material): boolean {
-  return TEXTURE_SLOTS.some((slot) => Boolean(getProperty(material, slot)))
-}
-
 function getProperty<T>(material: Material, property: string): T | undefined {
   return (material as unknown as Record<string, T>)[property]
+}
+
+function getBooleanProperty(material: Material, property: string): boolean {
+  return getProperty<boolean>(material, property) === true
 }
 
 function getNumericProperty(material: Material, property: string): number {
@@ -285,4 +443,12 @@ export function createMaterialCostCache(): MaterialCostCache {
       return getMaterialComplexityCacheSize()
     },
   }
+}
+
+function roundSignal(value: number): string {
+  return value.toFixed(2).replace(/\.?0+$/, "")
+}
+
+function clamp01(value: number): number {
+  return Math.max(0, Math.min(1, value))
 }

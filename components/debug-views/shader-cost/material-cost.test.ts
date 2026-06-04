@@ -14,9 +14,11 @@ import {
 } from "three"
 import {
   clearMaterialComplexityCache,
+  extractMaterialCostFeatures,
   getMaterialComplexity,
   getMaterialComplexityCacheSize,
   getMaterialCostSignature,
+  predictMaterialCost,
   scoreMaterialCost,
 } from "./material-cost"
 
@@ -31,6 +33,29 @@ describe("material complexity scoring", () => {
     expect(result.signals).toContain("type:basic-unlit")
   })
 
+  it("does not zero out risky basic material render states", () => {
+    const result = getMaterialComplexity(
+      new MeshBasicMaterial({
+        opacity: 0.5,
+        transparent: true,
+      }),
+    )
+
+    expect(result.cost).toBeGreaterThan(0)
+    expect(result.features?.transparencyMode).toBe("transparent")
+  })
+
+  it("does not zero out alpha-hashed basic materials", () => {
+    const material = new MeshBasicMaterial()
+    material.alphaHash = true
+
+    const result = getMaterialComplexity(material)
+
+    expect(result.cost).toBeGreaterThan(0)
+    expect(result.features?.transparencyMode).toBe("alphaTest")
+    expect(result.features?.discardRisk).toBe(1)
+  })
+
   it("scores advanced PBR features higher than basic features", () => {
     const cheap = new MeshStandardMaterial({ map: new DataTexture() })
     const expensive = new MeshPhysicalMaterial({
@@ -43,8 +68,12 @@ describe("material complexity scoring", () => {
     const expensiveResult = getMaterialComplexity(expensive)
 
     expect(expensiveResult.cost).toBeGreaterThan(cheapResult.cost)
-    expect(expensiveResult.signals).toContain("transmission:active")
-    expect(expensiveResult.signals).toContain("transparent:true")
+    expect(expensiveResult.features).toMatchObject({
+      physicalLobes: 2,
+      transparencyMode: "transparent",
+    })
+    expect(expensiveResult.signals).toContain("physical-lobes:2")
+    expect(expensiveResult.signals).toContain("transparency:transparent")
   })
 
   it("enforces material hierarchy costs", () => {
@@ -106,6 +135,36 @@ describe("material complexity scoring", () => {
     expect(second.cost).toBeGreaterThan(first.cost)
   })
 
+  it("extracts structured features separately from prediction", () => {
+    const material = new MeshPhysicalMaterial({
+      clearcoat: 1,
+      normalMap: new DataTexture(),
+      transmission: 1,
+      transparent: true,
+    })
+
+    const features = extractMaterialCostFeatures(material)
+
+    expect(features.materialFamily).toBe("physical")
+    expect(features.physicalLobes).toBe(2)
+    expect(features.textureSlots).toBe(1)
+    expect(features.dependentTextureRisk).toBe(1)
+    expect(features.transparencyMode).toBe("transparent")
+    expect(predictMaterialCost(features)).toBeGreaterThan(0)
+  })
+
+  it("classifies node materials when Three node flags are present", () => {
+    const material = new MeshStandardMaterial() as MeshStandardMaterial & {
+      isNodeMaterial: true
+    }
+    material.isNodeMaterial = true
+
+    const result = getMaterialComplexity(material)
+
+    expect(result.features?.materialFamily).toBe("node")
+    expect(result.signals).toContain("type:node-material")
+  })
+
   it("invalidates cache when texture resolution changes", () => {
     const texture = { image: { width: 256, height: 256 } } as any
     const material = new MeshStandardMaterial({ map: texture })
@@ -150,6 +209,15 @@ describe("material complexity scoring", () => {
 
     material.side = DoubleSide
     expect(getMaterialComplexity(material).signature).not.toBe(first)
+  })
+
+  it("updates signatures for alpha hash changes", () => {
+    const material = new MeshBasicMaterial()
+    const first = getMaterialCostSignature(material)
+
+    material.alphaHash = true
+
+    expect(getMaterialCostSignature(material)).not.toBe(first)
   })
 
   it("evicts oldest entries when cache exceeds maximum size", () => {
