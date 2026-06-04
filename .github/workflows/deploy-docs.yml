@@ -47,7 +47,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build live demo
-        run: pnpm run build:demo -- --base /threejs-debug-view/demo/ --outDir packages/docs/public/demo --emptyOutDir
+        run: pnpm run build:demo:docs
         env:
           VITE_DEBUG_VIEW_DEMO: "true"
 

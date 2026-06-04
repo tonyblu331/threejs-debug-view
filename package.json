@@ -32,6 +32,7 @@
     "preview": "vite preview --host 0.0.0.0 --port 3000",
     "build": "pnpm build:lib && pnpm build:types",
     "build:demo": "vite build --config vite.demo.config.ts",
+    "build:demo:docs": "vite build --config vite.demo.config.ts --base /threejs-debug-view/demo/ --outDir packages/docs/public/demo --emptyOutDir",
     "build:lib": "vite build",
     "build:types": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
