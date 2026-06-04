@@ -10,7 +10,7 @@ The package has a good architectural split:
 
 - pure planning modules for layouts, viewport cells, labels, presenters, and render graph planning
 - TSL compositor and visualization helpers
-- React/R3F runtime isolated behind the `/react` entrypoint
+- React Three Fiber runtime isolated behind the `/r3f` entrypoint
 - Astro documentation and a Vite demo
 
 The weak spots are OSS-operational:
@@ -49,7 +49,7 @@ Generated scratch outputs must stay out of the public repo. Durable README asset
 Public docs should describe the package shape:
 
 - root export: core helpers and types
-- `/react` export: React/R3F integration
+- `/r3f` export: React Three Fiber integration and Leva controls
 - `src/`: demo app only
 - `packages/docs/`: documentation site only
 

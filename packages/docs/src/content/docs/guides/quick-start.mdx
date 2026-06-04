@@ -3,22 +3,33 @@ title: Quick Start
 description: Add the debug view overlay and switch between built-in views.
 ---
 
-Import `DebugViews` from the React entrypoint and pass a list of debug view definitions.
+Import `DebugViews` from the R3F entrypoint and pass a list of debug view definitions.
 
 ```tsx
 import { DebugViews } from "threejs-debug-view/r3f"
 
-<DebugViews
-  views={[
-    { label: "Beauty", source: "beauty", mode: "passthrough" },
-    { label: "Normal", source: "normal", mode: "passthrough" },
-    { label: "Depth", source: "depth", mode: "depth" },
-    { label: "Base Color / Albedo", source: "albedo", mode: "passthrough" },
-  ]}
-  layout="single"
-  activeView={0}
-/>
+function DebugLayer() {
+  if (!import.meta.env.DEV) return null
+  return <DebugControls />
+}
+
+function DebugControls() {
+  return (
+    <DebugViews
+      views={[
+        { label: "Beauty", source: "beauty", mode: "passthrough" },
+        { label: "Normal", source: "normal", mode: "passthrough" },
+        { label: "Depth", source: "depth", mode: "depth" },
+        { label: "Base Color / Albedo", source: "albedo", mode: "passthrough" },
+      ]}
+      layout="single"
+      activeView={0}
+    />
+  )
+}
 ```
+
+Keep the overlay behind your app's dev flag unless you intentionally expose debug views in production.
 
 For the demo controls, use the bundled Leva helper:
 

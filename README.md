@@ -13,10 +13,10 @@ It lets you inspect what your scene is producing while you build: beauty, normal
 ## Install
 
 ```bash
-pnpm add threejs-debug-view
+pnpm add threejs-debug-view three react react-dom @react-three/fiber @react-three/drei leva
 ```
 
-`three`, `react`, `@react-three/fiber`, `@react-three/drei`, and `leva` are peer dependencies for the R3F adapter.
+The root package is React-free. The `threejs-debug-view/r3f` adapter needs the React Three Fiber and Leva peers shown above.
 
 ## Status
 
@@ -35,6 +35,11 @@ import { DebugViews, useDebugViewsControls } from "threejs-debug-view/r3f"
 import { DEFAULT_DEBUG_VIEWS, getDebugViewLabels } from "threejs-debug-view"
 
 function DebugLayer() {
+  if (!import.meta.env.DEV) return null
+  return <DebugControls />
+}
+
+function DebugControls() {
   const controls = useDebugViewsControls({
     viewLabels: getDebugViewLabels(DEFAULT_DEBUG_VIEWS),
   })
@@ -42,6 +47,8 @@ function DebugLayer() {
   return <DebugViews views={DEFAULT_DEBUG_VIEWS} {...controls} />
 }
 ```
+
+Keep the overlay behind your app's dev flag. The package is publishable, but debug views should not be mounted in production unless you intentionally expose them.
 
 ## What It Shows
 

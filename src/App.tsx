@@ -1,8 +1,14 @@
-import { Suspense, useState } from "react"
-import { Leva } from "leva"
+import { lazy, Suspense, useState } from "react"
 import { WebGpuCanvas } from "./components/WebGpuCanvas"
 import { Scene } from "./components/Scene"
-import { DebugOverlay } from "./components/DebugOverlay"
+
+const DevDebugOverlay = import.meta.env.DEV
+  ? lazy(() =>
+      import("./components/DebugOverlay").then(({ DebugOverlay }) => ({
+        default: DebugOverlay,
+      })),
+    )
+  : null
 
 type RendererWithBackend = {
   backend?: {
@@ -42,15 +48,13 @@ export function App() {
 
   return (
     <>
-      <Leva collapsed />
-
       <WebGpuCanvas
         camera={{ position: [0, 0, 5.5], fov: 40 }}
         onCreated={({ gl }) => setBackend(getBackendLabel(gl as RendererWithBackend))}
       >
         <Suspense fallback={null}>
           <Scene />
-          <DebugOverlay />
+          {DevDebugOverlay ? <DevDebugOverlay /> : null}
         </Suspense>
       </WebGpuCanvas>
 

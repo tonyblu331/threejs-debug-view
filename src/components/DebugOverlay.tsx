@@ -1,4 +1,5 @@
 import { useMemo } from "react"
+import { Leva } from "leva"
 import {
   DEFAULT_DEBUG_VIEWS,
   getDebugViewLabels,
@@ -22,17 +23,20 @@ export function DebugOverlay() {
   )
 
   return (
-    <DebugViews
-      views={views}
-      mode={controls.mode as DebugViewsMode}
-      activeView={controls.activeView as number}
-      layout={controls.layout as LayoutMode}
-      slots={controls.slots as number}
-      columns={controls.columns as number}
-      rows={controls.rows as number}
-      showLabels={controls.showLabels}
-      overlayOpacity={controls.overlayOpacity as number}
-      enabled={controls.enabled}
-    />
+    <>
+      <Leva collapsed />
+      <DebugViews
+        views={views}
+        mode={controls.mode as DebugViewsMode}
+        activeView={controls.activeView as number}
+        layout={controls.layout as LayoutMode}
+        slots={controls.slots as number}
+        columns={controls.columns as number}
+        rows={controls.rows as number}
+        showLabels={controls.showLabels}
+        overlayOpacity={controls.overlayOpacity as number}
+        enabled={controls.enabled}
+      />
+    </>
   )
 }
