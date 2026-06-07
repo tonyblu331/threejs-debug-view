@@ -33,7 +33,6 @@ import {
   createDebugViewportPlan,
   type DebugViewportPlan,
   type DebugViewportView,
-  type DebugViewsMode,
 } from "./debug-viewport-plan"
 import {
   createDebugViewportRenderGraphPlan,
@@ -54,12 +53,10 @@ import {
 
 export interface DebugViewsProps {
   views: readonly DebugView[]
-  mode?: DebugViewsMode
   viewportViews?: DebugViewportView[]
   activeView?: number
   layout?: DebugViewLayout
   paneCount?: number
-  slots?: number
   columns?: number
   rows?: number
   showLabels?: boolean
@@ -71,12 +68,10 @@ export interface DebugViewsProps {
 
 export function DebugViews({
   views,
-  mode = "compose",
   viewportViews,
   activeView = 0,
   layout = "single",
   paneCount,
-  slots,
   columns,
   rows,
   showLabels = false,
@@ -86,8 +81,8 @@ export function DebugViews({
   enabled = true,
 }: DebugViewsProps) {
   const layoutOptions = useMemo(
-    (): DebugViewLayoutOptions => ({ paneCount, slots, columns, rows }),
-    [paneCount, slots, columns, rows],
+    (): DebugViewLayoutOptions => ({ paneCount, columns, rows }),
+    [paneCount, columns, rows],
   )
 
   if (!enabled) {
@@ -97,7 +92,6 @@ export function DebugViews({
   return (
     <DebugViewsPipeline
       views={views}
-      mode={mode}
       viewportViews={viewportViews}
       activeView={activeView}
       layout={layout}
@@ -112,7 +106,6 @@ export function DebugViews({
 
 interface DebugViewsPipelineProps {
   views: readonly DebugView[]
-  mode: DebugViewsMode
   viewportViews?: DebugViewportView[]
   activeView: number
   layout: DebugViewLayout
@@ -125,7 +118,6 @@ interface DebugViewsPipelineProps {
 
 function DebugViewsPipeline({
   views,
-  mode,
   viewportViews,
   activeView,
   layout,
@@ -141,11 +133,12 @@ function DebugViewsPipeline({
     () => resolveDebugViewLayout(layout, layoutOptions),
     [layout, layoutOptions],
   )
+  const renderMode = viewportViews?.length ? "viewport" : "compose"
   const viewportPlan = useMemo(
-    () => mode === "viewport"
+    () => renderMode === "viewport"
       ? createDebugViewportPlan({ views, viewportViews, activeView, layout: resolvedLayout })
       : undefined,
-    [mode, views, viewportViews, activeView, resolvedLayout],
+    [renderMode, views, viewportViews, activeView, resolvedLayout],
   )
   const viewportGraph = useMemo(
     () => viewportPlan ? createDebugViewportRenderGraphPlan(viewportPlan) : undefined,
@@ -173,7 +166,7 @@ function DebugViewsPipeline({
   const [shaderCostScanPosition, setShaderCostScanPosition] = useState(0.5)
 
   const composePipelineRef = useDebugPipeline(
-    mode === "compose",
+    renderMode === "compose",
     scene,
     camera,
     plan,
@@ -183,7 +176,7 @@ function DebugViewsPipeline({
     uniforms,
   )
   const viewportRuntimeRef = useDebugViewportPipelines(
-    mode === "viewport",
+    renderMode === "viewport",
     scene,
     camera,
     viewportPlan,
@@ -197,7 +190,7 @@ function DebugViewsPipeline({
     scene.background = null
 
     try {
-      if (mode === "viewport") {
+      if (renderMode === "viewport") {
         const runtime = viewportRuntimeRef.current
         runtime?.render()
       } else {

@@ -45,13 +45,12 @@ The scorer infers active program/material signals into shader-unit buckets that 
 The raw signal count is normalized against a stable global signal scale and mapped into a bounded bucket material set.
 That keeps the override pass predictable instead of creating one material per mesh.
 
-## Viewport mode
+## Explicit panes
 
 `shaderCost` can also be assigned to a viewport pane:
 
 ```tsx
 <DebugViews
-  mode="viewport"
   views={DEFAULT_DEBUG_VIEWS}
   viewportViews={[
     { view: "beauty", label: "Beauty" },

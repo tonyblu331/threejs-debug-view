@@ -15,11 +15,10 @@ Enable labels with `showLabels`.
 />
 ```
 
-In viewport mode, labels follow the explicit `viewportViews` plan:
+With explicit pane assignments, labels follow the `viewportViews` plan:
 
 ```tsx
 <DebugViews
-  mode="viewport"
   views={views}
   viewportViews={[
     { view: "beauty", label: "Reference" },

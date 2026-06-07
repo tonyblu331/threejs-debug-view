@@ -29,25 +29,20 @@ Import it from `threejs-debug-view/r3f`.
 
 The root package export stays React-free. Use it for core helpers, built-in view definitions, render planning, and public types.
 
-```ts
-type DebugViewsMode = "compose" | "viewport"
-```
-
 Important props:
 
 | Prop | Purpose |
 | --- | --- |
 | `views` | Registered debug views. |
-| `mode` | `compose` or `viewport`. Defaults to `compose`. |
 | `activeView` | Selected view for single/overlay flows. |
 | `layout` | Layout preset or layout config. |
 | `paneCount` | Number of visible panes for row, column, and grid layouts. |
-| `viewportViews` | Explicit viewport assignments for viewport mode. |
+| `viewportViews` | Explicit pane assignments for fixed views, labels, cameras, or resolution scale. |
 | `showLabels` | Renders DOM labels over panes. |
 | `viewportLabels` | Label overrides or formatter. |
 | `overlayOpacity` | Blend amount for overlay mode. |
 
-Use this mental model when configuring panes: `layout` decides the arrangement, `paneCount` decides how many panes are visible, and `viewportViews` decides what each explicit viewport pane renders.
+Use this mental model when configuring panes: `layout` decides the arrangement, `paneCount` decides how many panes are visible, and `viewportViews` decides what each explicit viewport pane renders. Providing `viewportViews` automatically uses the viewport/scissor renderer path.
 
 ## `DebugView`
 

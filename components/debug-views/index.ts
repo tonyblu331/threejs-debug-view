@@ -27,7 +27,6 @@ export {
   type DebugViewportPlanOptions,
   type DebugViewportResolutionScale,
   type DebugViewportView,
-  type DebugViewsMode,
 } from "./debug-viewport-plan"
 export {
   createDebugViewportRenderGraphPlan,

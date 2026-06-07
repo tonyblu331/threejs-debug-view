@@ -10,8 +10,6 @@ import {
   selectPipelineViews,
 } from "./debug-view-selection"
 
-export type DebugViewsMode = "compose" | "viewport"
-
 export type DebugViewportResolutionScale = 1 | 0.5 | 0.25
 
 export interface DebugViewportView {

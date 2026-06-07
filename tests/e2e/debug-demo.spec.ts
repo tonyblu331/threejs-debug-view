@@ -65,10 +65,11 @@ test.describe("debug demo controls", () => {
     await expect(page.getByText("timestamp query", { exact: true })).toHaveCount(0)
     await expect(page.getByText("GPU pass", { exact: true })).toHaveCount(0)
     await expect(page.getByText("scan", { exact: true })).toHaveCount(0)
+    await expect(page.getByRole("combobox", { name: "Mode" })).toHaveCount(0)
 
-    await page.getByRole("combobox", { name: "Mode" }).selectOption({ label: "Viewport" })
     await page.getByRole("combobox", { name: "Layout" }).selectOption({ label: "Quad" })
 
+    await expect(page.getByRole("combobox", { name: "View" })).toHaveCount(0)
     await expect(page.getByRole("combobox", { name: "Pane 1" })).toBeVisible()
     await expect(page.getByRole("combobox", { name: "Pane 4" })).toBeVisible()
     await expect(page.getByRole("combobox", { name: "Pane 5" })).toHaveCount(0)
@@ -95,7 +96,7 @@ test.describe("debug demo controls", () => {
     await expect(page.getByText("Columns", { exact: true })).toBeVisible()
     await expect(page.getByText("Panes", { exact: true })).toBeVisible()
 
-    await page.getByRole("combobox", { name: "Mode" }).selectOption({ label: "Viewport" })
+    await expect(page.getByRole("combobox", { name: "Mode" })).toHaveCount(0)
     await expect(page.getByRole("combobox", { name: "View" })).toHaveCount(0)
     await expect(page.getByRole("combobox", { name: "Pane 1" })).toBeVisible()
     expect(messages).toEqual([])

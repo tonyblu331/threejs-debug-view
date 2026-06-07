@@ -11,7 +11,6 @@ export type DebugViewsControlValues = Required<
     | "columns"
     | "enabled"
     | "layout"
-    | "mode"
     | "overlayOpacity"
     | "paneCount"
     | "rows"
@@ -48,26 +47,18 @@ export function useDebugViewsControls(options: UseDebugViewsControlsOptions = {}
         value: Math.min(index, viewLabels.length - 1),
         options: viewOptions,
         render: (get: (path: string) => unknown) =>
-          get("Debug.mode") === "viewport" && index < getVisiblePaneCount(get),
+          usesPaneAssignments(get) && index < getVisiblePaneCount(get),
       }
     }
 
     return {
       enabled: { label: "Enabled", value: true },
       showLabels: { label: "Viewport labels", value: true },
-      mode: {
-        label: "Mode",
-        value: "compose",
-        options: {
-          Compose: "compose",
-          Viewport: "viewport",
-        },
-      },
       activeView: {
         label: "View",
         value: Math.max(0, Math.min(initialActiveView, viewLabels.length - 1)),
         options: viewOptions,
-        render: (get: (path: string) => unknown) => get("Debug.mode") === "compose",
+        render: (get: (path: string) => unknown) => !usesPaneAssignments(get),
       },
       layout: {
         label: "Layout",
@@ -124,16 +115,36 @@ export function useDebugViewsControls(options: UseDebugViewsControlsOptions = {}
   }, [initialActiveView, setControls, viewLabels.length])
 
   const controlValues = controls as Record<string, unknown>
-  const viewportViews: DebugViewportView[] = []
-  for (let index = 0; index < paneControlCount; index++) {
-    const value = controlValues[`pane${index + 1}`]
-    viewportViews.push({ view: typeof value === "number" ? value : index })
-  }
+  const viewportViews = isPaneAssignmentLayout(controlValues.layout)
+    ? createViewportViews(controlValues, paneControlCount)
+    : undefined
 
   return {
     ...controls,
     viewportViews,
   }
+}
+
+function createViewportViews(
+  controlValues: Record<string, unknown>,
+  paneControlCount: number,
+): DebugViewportView[] {
+  const viewportViews: DebugViewportView[] = []
+
+  for (let index = 0; index < paneControlCount; index++) {
+    const value = controlValues[`pane${index + 1}`]
+    viewportViews.push({ view: typeof value === "number" ? value : index })
+  }
+
+  return viewportViews
+}
+
+function usesPaneAssignments(get: (path: string) => unknown) {
+  return isPaneAssignmentLayout(get("Debug.layout"))
+}
+
+function isPaneAssignmentLayout(layout: unknown) {
+  return ["split-h", "split-v", "quad", "row", "column", "grid"].includes(String(layout))
 }
 
 function getVisiblePaneCount(get: (path: string) => unknown) {

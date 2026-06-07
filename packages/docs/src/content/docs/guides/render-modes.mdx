@@ -1,13 +1,13 @@
 ---
-title: Render Modes
-description: Choose between composed layouts and explicit viewport rendering.
+title: Presentation Routing
+description: Let DebugViews choose composed or viewport rendering from your props.
 ---
 
-`DebugViews` supports two public modes.
+`DebugViews` chooses the render path from your props.
 
-## `compose`
+## Composed selection
 
-`compose` is the default mode. It renders the selected debug sources and uses one fullscreen TSL compositor for presentation.
+When you do not provide explicit pane assignments, `DebugViews` renders the selected debug sources and uses one fullscreen TSL compositor for presentation.
 Use it for cheap switching, overlays, and simple layout inspection.
 
 In `single` presentation, compatible built-in views share reusable runtime pipeline groups. Switching between scene material channels such as roughness, AO, metallic, and opacity does not rebuild the whole debug runtime.
@@ -27,16 +27,15 @@ Supported layouts:
 <DebugViews views={views} layout="row" paneCount={4} />
 ```
 
-## `viewport`
+## Explicit panes
 
-`viewport` mode assigns views directly to renderer viewport/scissor panes.
-Use it when callers need stable pane assignment, labels, per-pane cameras, or resolution policy.
+When you provide `viewportViews`, `DebugViews` assigns views directly to renderer viewport/scissor panes.
+Use explicit panes when callers need stable pane assignment, labels, per-pane cameras, or resolution policy.
 
-`layout` and `paneCount` define the pane geometry. `viewportViews` assigns content to those panes.
+`layout` and `paneCount` define the pane geometry. `viewportViews` assigns content to those panes and automatically selects the viewport renderer path.
 
 ```tsx
 <DebugViews
-  mode="viewport"
   views={views}
   viewportViews={[
     { view: "beauty", label: "Beauty" },

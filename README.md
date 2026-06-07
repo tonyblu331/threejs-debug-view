@@ -58,18 +58,14 @@ Roughness, metallic, AO, opacity, and emissive use shader-side defaults when a m
 
 `shaderCost` is an estimate, not a native GPU instruction counter. It scores materials through source-labeled shader-unit buckets such as ALU proxy work, texture samples, dependent texture risk, branch/discard pressure, bandwidth pressure, and confidence. Overlap and render-pass timing are separate diagnostics, not shader-cost inputs.
 
-## Render Modes
+## Presentation Routing
 
-`DebugViews` has two modes:
+`DebugViews` routes presentation from the props you provide. Without explicit pane assignments, it uses the fullscreen TSL compositor for selected-view and composed layouts. When you provide `viewportViews`, it uses viewport/scissor panes with labels, per-pane cameras, and per-pane resolution scale.
 
-- `compose`: one fullscreen TSL output for single, overlay, split, row, column, and grid layouts.
-- `viewport`: explicit viewport assignment with labels, per-pane resolution scale, and scissor-based presentation.
-
-`layout` and `paneCount` define the pane geometry. `viewportViews` assigns content to those panes.
+`layout` and `paneCount` define the pane geometry. `viewportViews` assigns content to those panes and automatically selects the viewport renderer path.
 
 ```tsx
 <DebugViews
-  mode="viewport"
   views={DEFAULT_DEBUG_VIEWS}
   viewportViews={[
     { view: "beauty", label: "Beauty" },

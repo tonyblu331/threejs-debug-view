@@ -63,7 +63,7 @@ See [Performance Model](/threejs-debug-view/guides/performance/) for how single-
 `shaderCost` is an estimated shader-complexity view, not a browser-exposed shader instruction counter. Keep pass timing and overlap diagnostics separate from this view so the UI does not imply native ALU/TEX/occupancy data.
 :::
 
-## Compose example
+## Composed example
 
 ```tsx
 import { DEFAULT_DEBUG_VIEWS } from "threejs-debug-view"
@@ -78,13 +78,12 @@ import { DebugViews } from "threejs-debug-view/r3f"
 />
 ```
 
-## Viewport example
+## Explicit pane example
 
-Use viewport mode when panes must keep fixed assignments.
+Use explicit pane assignments when panes must keep fixed views.
 
 ```tsx
 <DebugViews
-  mode="viewport"
   views={DEFAULT_DEBUG_VIEWS}
   viewportViews={[
     { view: "beauty", label: "Beauty" },

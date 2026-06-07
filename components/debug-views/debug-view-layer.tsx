@@ -14,7 +14,6 @@ type DebugViewLayerControlledProps =
   | "columns"
   | "enabled"
   | "layout"
-  | "mode"
   | "overlayOpacity"
   | "paneCount"
   | "rows"
