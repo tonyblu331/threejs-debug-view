@@ -27,25 +27,15 @@ export interface DebugViewportRenderGraphPlan {
 export function createDebugViewportRenderGraphPlan(
   plan: DebugViewportPlan,
 ): DebugViewportRenderGraphPlan {
-  const passes: DebugViewportRenderPassPlan[] = []
-  const passIndices = new Map<string, number>()
+  const passes = plan.cells.map((cell): DebugViewportRenderPassPlan => ({
+    key: createRenderPassKey(cell),
+    view: cell.view,
+    camera: cell.camera,
+    resolutionScale: cell.resolutionScale,
+  }))
 
-  const cells = plan.cells.map((cell): DebugViewportRenderGraphCell => {
-    const key = createRenderPassKey(cell)
-    let passIndex = passIndices.get(key)
-
-    if (passIndex === undefined) {
-      passIndex = passes.length
-      passIndices.set(key, passIndex)
-      passes.push({
-        key,
-        view: cell.view,
-        camera: cell.camera,
-        resolutionScale: cell.resolutionScale,
-      })
-    }
-
-    return { ...cell, passIndex }
+  const cells = plan.cells.map((cell, index): DebugViewportRenderGraphCell => {
+    return { ...cell, passIndex: index }
   })
 
   return { passes, cells }
@@ -64,6 +54,7 @@ function createRenderPassKey(cell: DebugViewportCell) {
       : "default"
   const camera = cell.camera ? `camera:${cell.camera.uuid}` : "camera:default"
   return [
+    `cell:${cell.index}`,
     source,
     mode,
     identity,

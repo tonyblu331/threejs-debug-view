@@ -23,7 +23,7 @@ describe("debug viewport plan", () => {
     expect(plan.cells.map((cell) => cell.resolutionScale)).toEqual([1, 1, 0.5])
   })
 
-  it("dedupes repeated render signatures while preserving viewport cells", () => {
+  it("creates one render pass per viewport cell", () => {
     const viewportPlan = createDebugViewportPlan({
       views: DEFAULT_DEBUG_VIEWS,
       viewportViews: [
@@ -36,8 +36,8 @@ describe("debug viewport plan", () => {
 
     const graph = createDebugViewportRenderGraphPlan(viewportPlan)
 
-    expect(graph.passes.map((pass) => pass.view.source)).toEqual(["beauty", "normal"])
-    expect(graph.cells.map((cell) => cell.passIndex)).toEqual([0, 0, 1])
+    expect(graph.passes.map((pass) => pass.view.source)).toEqual(["beauty", "beauty", "normal"])
+    expect(graph.cells.map((cell) => cell.passIndex)).toEqual([0, 1, 2])
   })
 
   it("falls back to visible layout views when viewport assignments are omitted", () => {
@@ -121,7 +121,7 @@ describe("debug viewport plan", () => {
     expect(graph.cells.map((cell) => cell.passIndex)).toEqual([0, 1, 2])
   })
 
-  it("dedupes repeated custom node identities", () => {
+  it("keeps repeated custom node identities in separate viewport passes", () => {
     const node = float(1)
     const viewportPlan = createDebugViewportPlan({
       views: DEFAULT_DEBUG_VIEWS,
@@ -134,11 +134,11 @@ describe("debug viewport plan", () => {
 
     const graph = createDebugViewportRenderGraphPlan(viewportPlan)
 
-    expect(graph.passes).toHaveLength(1)
-    expect(graph.cells.map((cell) => cell.passIndex)).toEqual([0, 0])
+    expect(graph.passes).toHaveLength(2)
+    expect(graph.cells.map((cell) => cell.passIndex)).toEqual([0, 1])
   })
 
-  it("dedupes custom debug views by stable id across recreated node instances", () => {
+  it("keeps stable custom debug view ids in separate viewport passes", () => {
     const viewportPlan = createDebugViewportPlan({
       views: DEFAULT_DEBUG_VIEWS,
       viewportViews: [
@@ -164,8 +164,9 @@ describe("debug viewport plan", () => {
 
     const graph = createDebugViewportRenderGraphPlan(viewportPlan)
 
-    expect(graph.passes).toHaveLength(1)
+    expect(graph.passes).toHaveLength(2)
     expect(graph.passes[0]?.view.id).toBe("shader:fresnel")
-    expect(graph.cells.map((cell) => cell.passIndex)).toEqual([0, 0])
+    expect(graph.passes[1]?.view.id).toBe("shader:fresnel")
+    expect(graph.cells.map((cell) => cell.passIndex)).toEqual([0, 1])
   })
 })

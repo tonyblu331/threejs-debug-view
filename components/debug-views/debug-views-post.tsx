@@ -6,7 +6,7 @@ import { pass } from "three/tsl"
 import { createViewCompositor, type DebugView } from "./debug-views-tsl/compositor"
 import type { DebugNode, FloatNode } from "./debug-views-tsl/node-types"
 import { createDebugViewUniforms, updateDebugViewUniforms } from "./debug-views-tsl/uniforms"
-import { MeshBasicMaterial, MeshStandardMaterial, Vector2, Vector4, type Camera, type Scene } from "three"
+import { MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, Vector2, Vector4, type Camera, type Scene } from "three"
 import {
   configureMaterialDetailPass,
   configureSceneDebugPass,
@@ -133,16 +133,21 @@ function DebugViewsPipeline({
     () => resolveDebugViewLayout(layout, layoutOptions),
     [layout, layoutOptions],
   )
-  const renderMode = viewportViews?.length ? "viewport" : "compose"
   const viewportPlan = useMemo(
-    () => renderMode === "viewport"
+    () => viewportViews?.length
       ? createDebugViewportPlan({ views, viewportViews, activeView, layout: resolvedLayout })
       : undefined,
-    [renderMode, views, viewportViews, activeView, resolvedLayout],
+    [views, viewportViews, activeView, resolvedLayout],
+  )
+  const usesViewportRuntime = useMemo(
+    () => viewportPlan ? requiresViewportRuntime(viewportPlan) : false,
+    [viewportPlan],
   )
   const viewportGraph = useMemo(
-    () => viewportPlan ? createDebugViewportRenderGraphPlan(viewportPlan) : undefined,
-    [viewportPlan],
+    () => usesViewportRuntime && viewportPlan
+      ? createDebugViewportRenderGraphPlan(viewportPlan)
+      : undefined,
+    [usesViewportRuntime, viewportPlan],
   )
   const pipelineViews = viewportPlan?.views ?? views
   const plan = useMemo(
@@ -166,7 +171,7 @@ function DebugViewsPipeline({
   const [shaderCostScanPosition, setShaderCostScanPosition] = useState(0.5)
 
   const composePipelineRef = useDebugPipeline(
-    renderMode === "compose",
+    !usesViewportRuntime,
     scene,
     camera,
     plan,
@@ -176,7 +181,7 @@ function DebugViewsPipeline({
     uniforms,
   )
   const viewportRuntimeRef = useDebugViewportPipelines(
-    renderMode === "viewport",
+    usesViewportRuntime,
     scene,
     camera,
     viewportPlan,
@@ -190,7 +195,7 @@ function DebugViewsPipeline({
     scene.background = null
 
     try {
-      if (renderMode === "viewport") {
+      if (usesViewportRuntime) {
         const runtime = viewportRuntimeRef.current
         runtime?.render()
       } else {
@@ -543,6 +548,10 @@ interface DebugViewportRuntime {
   render: () => void
 }
 
+interface DebugViewportPass {
+  setViewport(x: number, y: number, width: number, height: number): void
+}
+
 function useDebugViewportPipelines(
   enabled: boolean,
   scene: Scene,
@@ -553,17 +562,27 @@ function useDebugViewportPipelines(
   uniforms: ReturnType<typeof createDebugViewUniforms>,
 ) {
   const runtimeRef = useRef<DebugViewportRuntime | null>(null)
+  const viewportStateRef = useRef({ viewportPlan, viewportGraph })
+  viewportStateRef.current = { viewportPlan, viewportGraph }
+  const passRuntimeKey = useMemo(
+    () => viewportGraph?.passes.map((graphPass) => graphPass.key).join("\n") ?? "",
+    [viewportGraph],
+  )
 
   useEffect(() => {
-    if (!enabled || !viewportPlan || !viewportGraph) return
+    const currentGraph = viewportStateRef.current.viewportGraph
+    if (!enabled || !currentGraph) return
 
-    const passRuntimes = viewportGraph.passes.map((graphPass) => {
+    const passRuntimes = currentGraph.passes.map((graphPass) => {
       const passPlan = createDebugRenderPlan([graphPass.view], 0, SINGLE_VIEW_LAYOUT)
+      const camera = graphPass.camera ?? defaultCamera
+
       return {
+        camera,
         plan: passPlan,
         runtime: createDebugPipelineRuntime(
           scene,
-          graphPass.camera ?? defaultCamera,
+          camera,
           passPlan,
           SINGLE_VIEW_LAYOUT,
           gl,
@@ -572,13 +591,18 @@ function useDebugViewportPipelines(
         ),
       }
     })
-    const rects = createDebugViewportRects(viewportPlan)
     const rendererSize = new Vector2()
     const previousViewport = new Vector4()
     const previousScissor = new Vector4()
+    const cameraAspects = new Map<PerspectiveCamera, number>()
 
     runtimeRef.current = {
       render: () => {
+        const currentPlan = viewportStateRef.current.viewportPlan
+        const currentGraph = viewportStateRef.current.viewportGraph
+        if (!currentPlan || !currentGraph) return
+
+        const rects = createDebugViewportRects(currentPlan)
         gl.getSize(rendererSize)
         const previousScissorTest = gl.getScissorTest()
         gl.getViewport(previousViewport)
@@ -589,7 +613,7 @@ function useDebugViewportPipelines(
         gl.setScissorTest(true)
 
         try {
-          for (const cell of viewportGraph.cells) {
+          for (const cell of currentGraph.cells) {
             const rect = rects[cell.index]
             const passRuntime = passRuntimes[cell.passIndex]
             if (!rect || !passRuntime) continue
@@ -597,10 +621,23 @@ function useDebugViewportPipelines(
             const viewportRect = toDebugViewportPixels(rect.scissor, rendererSize)
             gl.setViewport(viewportRect.x, viewportRect.y, viewportRect.width, viewportRect.height)
             gl.setScissor(viewportRect.x, viewportRect.y, viewportRect.width, viewportRect.height)
+            passRuntime.runtime.setViewport(
+              0,
+              0,
+              viewportRect.width,
+              viewportRect.height,
+            )
+            setCameraAspectForViewport(
+              passRuntime.camera,
+              viewportRect.width,
+              viewportRect.height,
+              cameraAspects,
+            )
             updateDebugViewUniforms(uniforms, 0, SINGLE_VIEW_LAYOUT, 1, 1)
             passRuntime.runtime.pipeline.render()
           }
         } finally {
+          restoreCameraAspects(cameraAspects)
           gl.setViewport(previousViewport)
           gl.setScissor(previousScissor)
           gl.setScissorTest(previousScissorTest)
@@ -614,18 +651,49 @@ function useDebugViewportPipelines(
       }
       runtimeRef.current = null
     }
-  }, [enabled, scene, defaultCamera, viewportPlan, viewportGraph, gl, uniforms])
+  }, [enabled, scene, defaultCamera, passRuntimeKey, gl, uniforms])
 
   return runtimeRef
 }
 
+function requiresViewportRuntime(plan: DebugViewportPlan) {
+  return plan.cells.some((cell) => cell.camera || cell.resolutionScale !== 1)
+}
+
+function setCameraAspectForViewport(
+  camera: Camera,
+  width: number,
+  height: number,
+  previousAspects: Map<PerspectiveCamera, number>,
+) {
+  if (!(camera instanceof PerspectiveCamera) || height <= 0) return
+
+  if (!previousAspects.has(camera)) {
+    previousAspects.set(camera, camera.aspect)
+  }
+
+  camera.aspect = width / height
+  camera.updateProjectionMatrix()
+}
+
+function restoreCameraAspects(previousAspects: Map<PerspectiveCamera, number>) {
+  for (const [camera, aspect] of previousAspects) {
+    camera.aspect = aspect
+    camera.updateProjectionMatrix()
+  }
+
+  previousAspects.clear()
+}
+
 interface DebugPipelineRuntime {
   pipeline: RenderPipeline
+  setViewport: (x: number, y: number, width: number, height: number) => void
   dispose: () => void
 }
 
 interface ShaderCostPass {
   setResolutionScale(resolutionScale: number): void
+  setViewport(x: number, y: number, width: number, height: number): void
   getTextureNode(name?: string): DebugNode
   getViewZNode(name?: string): FloatNode
   updateBefore(frame: unknown): unknown
@@ -634,6 +702,7 @@ interface ShaderCostPass {
 
 interface OverdrawPass {
   setResolutionScale(resolutionScale: number): void
+  setViewport(x: number, y: number, width: number, height: number): void
   getTextureNode(name?: string): DebugNode
   getViewZNode(name?: string): FloatNode
   updateBefore(frame: unknown): unknown
@@ -724,9 +793,21 @@ function createDebugPipelineRuntime(
 
   const outputNode = createViewCompositor({ views: resolvedViews, uniforms, layout })
   const pipeline = new RenderPipeline(gl, outputNode)
+  const viewportPasses: DebugViewportPass[] = [sp]
+  if (materialDetailPass) viewportPasses.push(materialDetailPass)
+  if (lightingOnlyPass) viewportPasses.push(lightingOnlyPass)
+  if (reflectionOnlyPass) viewportPasses.push(reflectionOnlyPass)
+  if (overdrawPass) viewportPasses.push(overdrawPass)
+  if (shaderCostPass) viewportPasses.push(shaderCostPass)
+  if (wireframePass) viewportPasses.push(wireframePass)
 
   return {
     pipeline,
+    setViewport: (x, y, width, height) => {
+      for (const debugPass of viewportPasses) {
+        debugPass.setViewport(x, y, width, height)
+      }
+    },
     dispose: () => {
       pipeline.dispose()
       sp.dispose()
