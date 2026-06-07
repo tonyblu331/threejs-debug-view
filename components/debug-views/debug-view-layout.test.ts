@@ -20,6 +20,46 @@ describe("debug view layout", () => {
     })
   })
 
+  it("supports paneCount as the public alias for layout slots", () => {
+    expect(resolveDebugViewLayout("row", { paneCount: 4 })).toMatchObject({
+      mode: "row",
+      presentation: "grid",
+      columns: 4,
+      rows: 1,
+      slots: 4,
+    })
+
+    expect(resolveDebugViewLayout("column", { paneCount: 3 })).toMatchObject({
+      mode: "column",
+      presentation: "grid",
+      columns: 1,
+      rows: 3,
+      slots: 3,
+    })
+
+    expect(resolveDebugViewLayout("row", { paneCount: 4, slots: 2 })).toMatchObject({
+      columns: 4,
+      rows: 1,
+      slots: 4,
+    })
+
+    expect(resolveDebugViewLayout({ mode: "row", slots: 2 }, { paneCount: 4 })).toMatchObject({
+      columns: 4,
+      rows: 1,
+      slots: 4,
+    })
+  })
+
+  it("keeps slots as a compatibility alias", () => {
+    expect(resolveDebugViewLayout("grid", { columns: 3, rows: 2, slots: 4 })).toMatchObject({
+      mode: "grid",
+      presentation: "grid",
+      columns: 3,
+      rows: 2,
+      slots: 4,
+    })
+  })
+
   it("does not let undefined prop options erase layout config values", () => {
     expect(
       resolveDebugViewLayout(

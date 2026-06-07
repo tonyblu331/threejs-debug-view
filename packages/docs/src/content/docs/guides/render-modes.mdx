@@ -24,13 +24,15 @@ Supported layouts:
 - `grid`
 
 ```tsx
-<DebugViews views={views} layout="row" slots={4} />
+<DebugViews views={views} layout="row" paneCount={4} />
 ```
 
 ## `viewport`
 
 `viewport` mode assigns views directly to renderer viewport/scissor panes.
 Use it when callers need stable pane assignment, labels, per-pane cameras, or resolution policy.
+
+`layout` and `paneCount` define the pane geometry. `viewportViews` assigns content to those panes.
 
 ```tsx
 <DebugViews
@@ -43,7 +45,7 @@ Use it when callers need stable pane assignment, labels, per-pane cameras, or re
     { view: "roughness", label: "Roughness", resolutionScale: 0.5 },
   ]}
   layout="row"
-  slots={4}
+  paneCount={4}
   showLabels
 />
 ```

@@ -43,7 +43,7 @@ Keep the overlay behind your app's dev flag. The package is publishable, but deb
 
 ## What It Shows
 
-Built-in debug sources include beauty, normal, depth, base color, material normal, emissive, roughness, AO, metallic, opacity, wireframe, lighting-only, reflection-only, overdraw, and estimated shader complexity.
+Built-in debug sources include beauty, normal, depth, base color, material normal, emissive, roughness, AO, metallic, opacity, wireframe, lighting-only, reflection-only, overlap, and estimated shader complexity.
 
 Material scalars are packed into one RGBA target:
 
@@ -52,11 +52,11 @@ Material scalars are packed into one RGBA target:
 - `B`: AO
 - `A`: opacity
 
-Material-normal uses a focused material-detail pass. Emissive shares the reusable scene pass with the packed material scalar views. Wireframe, lighting-only, reflection-only, overdraw, and shader-cost views are created only when the active layout needs them.
+Material-normal uses a focused material-detail pass. Emissive shares the reusable scene pass with the packed material scalar views. Wireframe, lighting-only, reflection-only, overlap, and shader-cost views are created only when the active layout needs them.
 
 Roughness, metallic, AO, opacity, and emissive use shader-side defaults when a material does not support the property. The debug runtime does not patch scene materials to make a view compile. AO reads material-authored AO maps; it is not a screen-space AO buffer unless you provide one as a custom view or pass-backed source.
 
-`shaderCost` is an estimate, not a native GPU instruction counter. It scores materials through source-labeled shader-unit buckets such as ALU proxy work, texture samples, dependent texture risk, branch/discard pressure, bandwidth pressure, and confidence. In the demo, debug-only WebGPU timestamp queries can add a measured render-pass timing line; that timing is calibration evidence, not an ALU or occupancy counter.
+`shaderCost` is an estimate, not a native GPU instruction counter. It scores materials through source-labeled shader-unit buckets such as ALU proxy work, texture samples, dependent texture risk, branch/discard pressure, bandwidth pressure, and confidence. Overlap and render-pass timing are separate diagnostics, not shader-cost inputs.
 
 ## Render Modes
 
@@ -64,6 +64,8 @@ Roughness, metallic, AO, opacity, and emissive use shader-side defaults when a m
 
 - `compose`: one fullscreen TSL output for single, overlay, split, row, column, and grid layouts.
 - `viewport`: explicit viewport assignment with labels, per-pane resolution scale, and scissor-based presentation.
+
+`layout` and `paneCount` define the pane geometry. `viewportViews` assigns content to those panes.
 
 ```tsx
 <DebugViews
@@ -76,7 +78,7 @@ Roughness, metallic, AO, opacity, and emissive use shader-side defaults when a m
     { view: "roughness", label: "Roughness", resolutionScale: 0.5 },
   ]}
   layout="row"
-  slots={4}
+  paneCount={4}
   showLabels
 />
 ```

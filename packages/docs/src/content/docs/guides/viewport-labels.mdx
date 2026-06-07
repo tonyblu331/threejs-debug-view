@@ -9,7 +9,7 @@ Enable labels with `showLabels`.
 <DebugViews
   views={views}
   layout="row"
-  slots={4}
+  paneCount={4}
   showLabels
   viewportLabels={["Beauty", "Normals", "Depth", "Albedo"]}
 />
@@ -25,7 +25,7 @@ In viewport mode, labels follow the explicit `viewportViews` plan:
     { view: "beauty", label: "Reference" },
     { view: "normal", label: "Geometry normals" },
   ]}
-  layout={{ mode: "row", slots: 2 }}
+  layout={{ mode: "row", paneCount: 2 }}
   showLabels
 />
 ```

@@ -9,6 +9,7 @@ export type LayoutMode =
   | "grid"
 
 export interface DebugViewLayoutOptions {
+  paneCount?: number
   slots?: number
   columns?: number
   rows?: number
@@ -61,17 +62,17 @@ export function resolveDebugViewLayout(
     case "quad":
       return createResolvedLayout(config.mode, "grid", 2, 2)
     case "row": {
-      const slots = positiveInteger(config.slots, DEFAULT_LINEAR_SLOTS)
+      const slots = positiveInteger(getPaneCountOption(config), DEFAULT_LINEAR_SLOTS)
       return createResolvedLayout(config.mode, "grid", slots, 1, slots)
     }
     case "column": {
-      const slots = positiveInteger(config.slots, DEFAULT_LINEAR_SLOTS)
+      const slots = positiveInteger(getPaneCountOption(config), DEFAULT_LINEAR_SLOTS)
       return createResolvedLayout(config.mode, "grid", 1, slots, slots)
     }
     case "grid": {
       const columns = positiveInteger(config.columns, 2)
       const rows = positiveInteger(config.rows, 2)
-      return createResolvedLayout(config.mode, "grid", columns, rows, config.slots)
+      return createResolvedLayout(config.mode, "grid", columns, rows, getPaneCountOption(config))
     }
   }
 }
@@ -98,11 +99,16 @@ function mergeLayoutOptions(
 function getDefinedLayoutOptions(options: DebugViewLayoutOptions): DebugViewLayoutOptions {
   const definedOptions: DebugViewLayoutOptions = {}
 
+  if (options.paneCount !== undefined) definedOptions.paneCount = options.paneCount
   if (options.slots !== undefined) definedOptions.slots = options.slots
   if (options.columns !== undefined) definedOptions.columns = options.columns
   if (options.rows !== undefined) definedOptions.rows = options.rows
 
   return definedOptions
+}
+
+function getPaneCountOption(options: DebugViewLayoutOptions): number | undefined {
+  return options.paneCount ?? options.slots
 }
 
 function createResolvedLayout(

@@ -13,24 +13,24 @@ export type DebugViewsControlValues = Required<
     | "layout"
     | "mode"
     | "overlayOpacity"
+    | "paneCount"
     | "rows"
     | "showLabels"
-    | "slots"
     | "viewportViews"
   >
 >
 
 interface UseDebugViewsControlsOptions {
   viewLabels?: string[]
-  maxLayoutSlots?: number
+  maxPaneCount?: number
   initialActiveView?: number
 }
 
 export function useDebugViewsControls(options: UseDebugViewsControlsOptions = {}) {
-  const { viewLabels = getDebugViewLabels(), initialActiveView = 0, maxLayoutSlots } = options
-  const slotLimit = Math.max(1, maxLayoutSlots ?? viewLabels.length)
-  const defaultSlots = Math.min(4, slotLimit)
-  const paneControlCount = Math.min(8, slotLimit)
+  const { viewLabels = getDebugViewLabels(), initialActiveView = 0, maxPaneCount } = options
+  const paneLimit = Math.max(1, maxPaneCount ?? viewLabels.length)
+  const defaultPaneCount = Math.min(4, paneLimit)
+  const paneControlCount = Math.min(8, paneLimit)
 
   const viewOptions = useMemo(() => {
     const options: Record<string, number> = {}
@@ -83,11 +83,11 @@ export function useDebugViewsControls(options: UseDebugViewsControlsOptions = {}
           Grid: "grid",
         },
       },
-      slots: {
+      paneCount: {
         label: "Panes",
-        value: defaultSlots,
+        value: defaultPaneCount,
         min: 1,
-        max: slotLimit,
+        max: paneLimit,
         step: 1,
         render: (get: (path: string) => unknown) => ["row", "column", "grid"].includes(String(get("Debug.layout"))),
       },
@@ -95,7 +95,7 @@ export function useDebugViewsControls(options: UseDebugViewsControlsOptions = {}
         label: "Columns",
         value: 2,
         min: 1,
-        max: slotLimit,
+        max: paneLimit,
         step: 1,
         render: (get: (path: string) => unknown) => get("Debug.layout") === "grid",
       },
@@ -103,7 +103,7 @@ export function useDebugViewsControls(options: UseDebugViewsControlsOptions = {}
         label: "Rows",
         value: 2,
         min: 1,
-        max: slotLimit,
+        max: paneLimit,
         step: 1,
         render: (get: (path: string) => unknown) => get("Debug.layout") === "grid",
       },
@@ -117,7 +117,7 @@ export function useDebugViewsControls(options: UseDebugViewsControlsOptions = {}
       },
       ...paneControls,
     }
-  }, [defaultSlots, initialActiveView, paneControlCount, slotLimit, viewLabels.length, viewOptions])
+  }, [defaultPaneCount, initialActiveView, paneControlCount, paneLimit, viewLabels.length, viewOptions])
 
   useEffect(() => {
     setControls({ activeView: Math.max(0, Math.min(initialActiveView, viewLabels.length - 1)) })
@@ -151,8 +151,8 @@ function getVisiblePaneCount(get: (path: string) => unknown) {
     case "row":
     case "column":
     case "grid": {
-      const slots = Number(get("Debug.slots"))
-      return Number.isFinite(slots) ? Math.max(1, Math.floor(slots)) : 4
+      const paneCount = Number(get("Debug.paneCount"))
+      return Number.isFinite(paneCount) ? Math.max(1, Math.floor(paneCount)) : 4
     }
     default:
       return 1
