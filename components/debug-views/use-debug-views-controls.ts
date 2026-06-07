@@ -115,9 +115,13 @@ export function useDebugViewsControls(options: UseDebugViewsControlsOptions = {}
   }, [initialActiveView, setControls, viewLabels.length])
 
   const controlValues = controls as Record<string, unknown>
-  const viewportViews = isPaneAssignmentLayout(controlValues.layout)
-    ? createViewportViews(controlValues, paneControlCount)
-    : undefined
+  const paneAssignmentsKey = createPaneAssignmentsKey(controlValues, paneControlCount)
+  const viewportViews = useMemo(
+    () => isPaneAssignmentLayout(controlValues.layout)
+      ? createViewportViews(controlValues, paneControlCount)
+      : undefined,
+    [controlValues.layout, paneAssignmentsKey, paneControlCount],
+  )
 
   return {
     ...controls,
@@ -137,6 +141,19 @@ function createViewportViews(
   }
 
   return viewportViews
+}
+
+function createPaneAssignmentsKey(
+  controlValues: Record<string, unknown>,
+  paneControlCount: number,
+) {
+  const assignments: string[] = []
+
+  for (let index = 0; index < paneControlCount; index++) {
+    assignments.push(String(controlValues[`pane${index + 1}`]))
+  }
+
+  return assignments.join("|")
 }
 
 function usesPaneAssignments(get: (path: string) => unknown) {
