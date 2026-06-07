@@ -1,0 +1,22 @@
+{
+  "view": "materialNormal",
+  "url": "http://localhost:3002/?debugView=materialNormal&audit=1780785884025",
+  "canvas": {
+    "x": 0,
+    "y": 0,
+    "width": 1440,
+    "height": 960
+  },
+  "console": [
+    {
+      "type": "warning",
+      "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    },
+    {
+      "type": "warning",
+      "text": "No available adapters."
+    }
+  ],
+  "pageErrors": [],
+  "failedRequests": []
+}
