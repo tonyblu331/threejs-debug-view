@@ -37,6 +37,7 @@
     "build:types": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:e2e": "playwright test",
     "verify": "pnpm typecheck && pnpm test && pnpm build && pnpm docs:build",
     "prepublishOnly": "pnpm typecheck && pnpm test && pnpm build",
     "docs:dev": "pnpm --filter @threejs-debug-view/docs dev",
@@ -69,6 +70,7 @@
     }
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@react-three/drei": "10.7.7",
     "@react-three/fiber": "9.6.1",
     "@types/node": "25.9.1",

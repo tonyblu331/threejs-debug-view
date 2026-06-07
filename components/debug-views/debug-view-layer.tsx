@@ -16,25 +16,30 @@ type DebugViewLayerControlledProps =
   | "layout"
   | "mode"
   | "overlayOpacity"
+  | "paneCount"
   | "rows"
   | "showLabels"
   | "slots"
+  | "viewportViews"
   | "views"
 
 export interface DebugViewLayerProps
   extends Omit<DebugViewsProps, DebugViewLayerControlledProps> {
   views?: readonly DebugView[]
   viewLabels?: string[]
+  initialActiveView?: number
   maxLayoutSlots?: number
 }
 
 export function DebugViewLayer({
+  initialActiveView,
   views = DEFAULT_DEBUG_VIEWS,
   viewLabels = getDebugViewLabels(views),
   maxLayoutSlots,
   ...props
 }: DebugViewLayerProps) {
   const controls = useDebugViewsControls({
+    initialActiveView,
     viewLabels,
     maxLayoutSlots,
   }) as DebugViewsControlValues

@@ -60,7 +60,7 @@ Demand-driven override passes add another scene render only when the selected la
 See [Performance Model](/threejs-debug-view/guides/performance/) for how single-view switching reuses compatible runtime pipelines.
 
 :::caution
-`shaderCost` is an estimated shader-complexity view, not a browser-exposed shader instruction counter. The demo can show WebGPU timestamp render-pass timing when supported, but that timing is calibration evidence, not native ALU/TEX/occupancy data.
+`shaderCost` is an estimated shader-complexity view, not a browser-exposed shader instruction counter. Keep pass timing and overlap diagnostics separate from this view so the UI does not imply native ALU/TEX/occupancy data.
 :::
 
 ## Compose example
@@ -73,7 +73,7 @@ import { DebugViews } from "threejs-debug-view/r3f"
   views={DEFAULT_DEBUG_VIEWS}
   activeView={0}
   layout="quad"
-  slots={4}
+  paneCount={4}
   showLabels
 />
 ```
@@ -93,7 +93,7 @@ Use viewport mode when panes must keep fixed assignments.
     { view: "shaderCost", label: "Estimated Shader Complexity", resolutionScale: 0.5 },
   ]}
   layout="quad"
-  slots={4}
+  paneCount={4}
   showLabels
 />
 ```

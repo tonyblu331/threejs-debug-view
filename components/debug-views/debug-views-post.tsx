@@ -48,10 +48,6 @@ import {
   type ShaderCostOverride,
 } from "./shader-cost/cost-override"
 import {
-  createShaderCostTimingCollector,
-  type ShaderCostTimingSnapshot,
-} from "./shader-cost/timing-collector"
-import {
   createOverdrawOverride,
   type OverdrawOverride,
 } from "./overdraw/overdraw-override"
@@ -62,6 +58,7 @@ export interface DebugViewsProps {
   viewportViews?: DebugViewportView[]
   activeView?: number
   layout?: DebugViewLayout
+  paneCount?: number
   slots?: number
   columns?: number
   rows?: number
@@ -78,6 +75,7 @@ export function DebugViews({
   viewportViews,
   activeView = 0,
   layout = "single",
+  paneCount,
   slots,
   columns,
   rows,
@@ -88,8 +86,8 @@ export function DebugViews({
   enabled = true,
 }: DebugViewsProps) {
   const layoutOptions = useMemo(
-    (): DebugViewLayoutOptions => ({ slots, columns, rows }),
-    [slots, columns, rows],
+    (): DebugViewLayoutOptions => ({ paneCount, slots, columns, rows }),
+    [paneCount, slots, columns, rows],
   )
 
   if (!enabled) {
@@ -172,19 +170,7 @@ function DebugViewsPipeline({
     [plan, resolvedLayout],
   )
   const webGpuRenderer = toWebGpuRenderer(gl)
-  const shaderCostTimingCollector = useMemo(
-    () => createShaderCostTimingCollector(webGpuRenderer),
-    [webGpuRenderer],
-  )
-  const shaderCostTimingFrame = useRef(0)
-  const [shaderCostTiming, setShaderCostTiming] = useState<ShaderCostTimingSnapshot>(
-    shaderCostTimingCollector.getSnapshot(),
-  )
   const [shaderCostScanPosition, setShaderCostScanPosition] = useState(0.5)
-
-  useEffect(() => {
-    setShaderCostTiming(shaderCostTimingCollector.getSnapshot())
-  }, [shaderCostTimingCollector])
 
   const composePipelineRef = useDebugPipeline(
     mode === "compose",
@@ -228,13 +214,6 @@ function DebugViewsPipeline({
       if (showsShaderCost) {
         const scanPosition = 0.5 - Math.cos(frameState.clock.elapsedTime * 1.35) * 0.5
         setShaderCostScanPosition(scanPosition)
-
-        shaderCostTimingFrame.current += 1
-        if (shaderCostTimingFrame.current % 30 === 0) {
-          void shaderCostTimingCollector.sample().then((next) => {
-            if (next) setShaderCostTiming(next)
-          })
-        }
       }
     } finally {
       scene.background = previousBackground
@@ -255,7 +234,6 @@ function DebugViewsPipeline({
       {showsShaderCost ? (
         <ShaderCostLegendOverlay
           scanPosition={shaderCostScanPosition}
-          timing={shaderCostTiming}
         />
       ) : null}
     </>
@@ -310,10 +288,8 @@ function DebugViewportLabelOverlay({
 
 function ShaderCostLegendOverlay({
   scanPosition,
-  timing,
 }: {
   scanPosition: number
-  timing: ShaderCostTimingSnapshot
 }) {
   return (
     <Html fullscreen style={htmlOverlayStyle}>
@@ -321,20 +297,12 @@ function ShaderCostLegendOverlay({
         aria-hidden="true"
         style={{ ...shaderCostScanCursorStyle, left: `${scanPosition * 100}%` }}
       >
-        <span style={shaderCostScanCursorLabelStyle}>scan</span>
+        <span style={shaderCostScanCursorLabelStyle}>sample</span>
       </div>
       <div
         aria-hidden="true"
         style={shaderCostLegendOverlayStyle}
       >
-        <div style={shaderCostLegendMetricRowStyle}>
-          <span style={shaderCostLegendMetricStyle}>
-            GPU pass {formatShaderCostTiming(timing)}
-          </span>
-          <span style={shaderCostLegendMetricStyle}>
-            timestamp query
-          </span>
-        </div>
         <div
           style={shaderCostLegendPanelStyle}
         >
@@ -345,7 +313,7 @@ function ShaderCostLegendOverlay({
         <div
           style={shaderCostLegendNoteStyle}
         >
-          estimated shader complexity scan
+          estimated shader complexity sample
         </div>
       </div>
     </Html>
@@ -361,7 +329,7 @@ function ShaderCostLegendRamp({ scanPosition }: { scanPosition: number }) {
       <div style={{ ...shaderCostTimingMarkerStyle, left: position }}>
         <span style={shaderCostTimingMarkerTriangleStyle} />
         <span style={shaderCostTimingMarkerLabelStyle}>
-          scan cursor
+          sample
         </span>
       </div>
     </div>
@@ -436,13 +404,14 @@ const shaderCostLegendOverlayStyle: CSSProperties = {
 }
 
 const shaderCostScanCursorStyle: CSSProperties = {
-  background: "linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0))",
-  bottom: 102,
+  border: "2px solid rgba(255, 255, 255, 0.9)",
+  boxShadow: "0 0 0 1px rgba(0, 0, 0, 0.72), 0 0 22px rgba(255, 255, 255, 0.34)",
+  height: 46,
+  bottom: 118,
   position: "absolute",
-  top: 94,
   transform: "translateX(-50%)",
   transition: "left 90ms linear",
-  width: 2,
+  width: 46,
   zIndex: 19,
 }
 
@@ -460,25 +429,6 @@ const shaderCostScanCursorLabelStyle: CSSProperties = {
   textTransform: "uppercase",
   top: 0,
   whiteSpace: "nowrap",
-}
-
-const shaderCostLegendMetricRowStyle: CSSProperties = {
-  display: "flex",
-  gap: 6,
-  justifyContent: "space-between",
-  width: "100%",
-}
-
-const shaderCostLegendMetricStyle: CSSProperties = {
-  background: "rgba(0, 0, 0, 0.62)",
-  border: "1px solid rgba(255, 255, 255, 0.16)",
-  color: "rgba(255, 255, 255, 0.86)",
-  fontFamily: "monospace",
-  fontSize: 11,
-  letterSpacing: "0.04em",
-  lineHeight: 1,
-  padding: "5px 7px",
-  textTransform: "uppercase",
 }
 
 const shaderCostLegendPanelStyle: CSSProperties = {
@@ -565,19 +515,6 @@ function createLabelGridStyle(layout: ResolvedDebugViewLayout): CSSProperties {
     pointerEvents: "none",
     position: "absolute",
     width: "100%",
-  }
-}
-
-function formatShaderCostTiming(timing: ShaderCostTimingSnapshot) {
-  switch (timing.status) {
-    case "measured":
-      return `${timing.elapsedMs?.toFixed(2)} ms`
-    case "sampling":
-      return "timing sampling"
-    case "failed":
-      return "timing failed"
-    case "unsupported":
-      return "timing unsupported"
   }
 }
 

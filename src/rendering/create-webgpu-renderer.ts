@@ -8,8 +8,7 @@ type RendererBackendFlags = {
 
 const WEBGPU_PREFLIGHT_TIMEOUT_MS = 1_500
 const REQUIRED_COLOR_ATTACHMENT_BYTES_PER_SAMPLE = 40
-const ENABLE_SHADER_COST_TIMING =
-  import.meta.env.DEV || import.meta.env.VITE_DEBUG_SHADER_TIMING === "true"
+const ENABLE_SHADER_COST_TIMING = import.meta.env.VITE_DEBUG_SHADER_TIMING === "true"
 
 async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, fallback: T): Promise<T> {
   let timeoutId: ReturnType<typeof setTimeout> | undefined

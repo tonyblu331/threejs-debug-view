@@ -1,4 +1,4 @@
-import { defineConfig } from "vite"
+import { defineConfig } from "vitest/config"
 import react from "@vitejs/plugin-react"
 import { fileURLToPath } from "node:url"
 import { dirname, resolve } from "node:path"
@@ -39,5 +39,8 @@ export default defineConfig({
       },
     },
     sourcemap: false,
+  },
+  test: {
+    exclude: ["tests/e2e/**", "node_modules/**", "dist/**"],
   },
 })

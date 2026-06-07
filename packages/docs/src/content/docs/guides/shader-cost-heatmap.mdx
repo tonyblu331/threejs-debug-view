@@ -28,7 +28,7 @@ The heatmap is normalized from `0` to `1`:
 - White: extreme end of the configured scale.
 
 :::caution
-`shaderCost` is an estimate. Browsers do not expose portable shader instruction counts through this API, so the view reports source-labeled shader-unit buckets instead of native ALU/TEX counters. When WebGPU timestamp queries are available, the demo may show render-pass timing as calibration metadata.
+`shaderCost` is an estimate. Browsers do not expose portable shader instruction counts through this API, so the view reports source-labeled shader-unit buckets instead of native ALU/TEX counters. Overlap and render-pass timing are separate diagnostics, not shader-cost inputs.
 :::
 
 ## What increases complexity
@@ -58,7 +58,7 @@ That keeps the override pass predictable instead of creating one material per me
     { view: "shaderCost", label: "Estimated Shader Complexity", resolutionScale: 0.5 },
   ]}
   layout="split-h"
-  slots={2}
+  paneCount={2}
   showLabels
 />
 ```

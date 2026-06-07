@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, type CSSProperties } from "react"
+import { lazy, Suspense, useEffect, useState, type CSSProperties } from "react"
 import { WebGpuCanvas } from "./components/WebGpuCanvas"
 import { Scene, type DemoSceneVariant } from "./components/Scene"
 
@@ -57,26 +57,42 @@ const backendBadgeStyle: CSSProperties = {
 
 export function App() {
   const [backend, setBackend] = useState("initializing")
-  const [sceneVariant, setSceneVariant] = useState<DemoSceneVariant>(() =>
-    new URLSearchParams(window.location.search).get("scene") === "overdraw" ? "overdraw" : "main",
-  )
+  const [sceneVariant, setSceneVariant] = useState<DemoSceneVariant>(getSceneVariantFromUrl)
+  const [debugViewSource, setDebugViewSource] = useState(getDebugViewSourceFromUrl)
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setSceneVariant(getSceneVariantFromUrl())
+      setDebugViewSource(getDebugViewSourceFromUrl())
+    }
+    window.addEventListener("popstate", handlePopState)
+    return () => window.removeEventListener("popstate", handlePopState)
+  }, [])
 
   function updateSceneVariant(variant: DemoSceneVariant) {
     setSceneVariant(variant)
     const url = new URL(window.location.href)
     if (variant === "main") {
       url.searchParams.delete("scene")
+      url.searchParams.delete("debugView")
+      setDebugViewSource(null)
     } else {
       url.searchParams.set("scene", variant)
+      url.searchParams.set("debugView", "overdraw")
+      setDebugViewSource("overdraw")
     }
-    window.history.replaceState(null, "", url)
+    window.history.pushState(null, "", url)
   }
 
   return (
     <>
       <SceneTabs active={sceneVariant} onChange={updateSceneVariant} />
       {enableDebugOverlay ? (
-        <DebugScene onBackendChange={setBackend} sceneVariant={sceneVariant} />
+        <DebugScene
+          debugViewSource={debugViewSource}
+          onBackendChange={setBackend}
+          sceneVariant={sceneVariant}
+        />
       ) : (
         <DefaultScene onBackendChange={setBackend} sceneVariant={sceneVariant} />
       )}
@@ -86,6 +102,7 @@ export function App() {
 }
 
 interface SceneShellProps {
+  debugViewSource?: string | null
   onBackendChange: (backend: string) => void
   sceneVariant: DemoSceneVariant
 }
@@ -106,7 +123,7 @@ function DefaultScene({ onBackendChange, sceneVariant }: SceneShellProps) {
   )
 }
 
-function DebugScene({ onBackendChange, sceneVariant }: SceneShellProps) {
+function DebugScene({ debugViewSource, onBackendChange, sceneVariant }: SceneShellProps) {
   return (
     <>
       <WebGpuCanvas
@@ -118,7 +135,7 @@ function DebugScene({ onBackendChange, sceneVariant }: SceneShellProps) {
       >
         <Suspense fallback={null}>
           <Scene variant={sceneVariant} />
-          {DevDebugOverlay ? <DevDebugOverlay /> : null}
+          {DevDebugOverlay ? <DevDebugOverlay debugViewSource={debugViewSource} /> : null}
         </Suspense>
       </WebGpuCanvas>
 
@@ -154,10 +171,19 @@ function SceneTabs({
         style={getSceneTabStyle(active === "overdraw")}
         type="button"
       >
-        Overdraw
+        Overlap
       </button>
     </div>
   )
+}
+
+function getSceneVariantFromUrl(): DemoSceneVariant {
+  const scene = new URLSearchParams(window.location.search).get("scene")
+  return scene === "overdraw" || scene === "overlap" ? "overdraw" : "main"
+}
+
+function getDebugViewSourceFromUrl() {
+  return new URLSearchParams(window.location.search).get("debugView")
 }
 
 const sceneTabsStyle: CSSProperties = {

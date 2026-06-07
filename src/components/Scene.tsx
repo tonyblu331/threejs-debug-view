@@ -5,6 +5,7 @@ import { HdrEnvironment } from "./HdrEnvironment"
 import {
   DataTexture,
   DoubleSide,
+  Color,
   Group,
   IcosahedronGeometry,
   MeshBasicMaterial,
@@ -207,7 +208,7 @@ const costSamples = [
       color: "#f2f2f2",
       toneMapped: false,
     }),
-    position: [-2.6, 0, 0] as const,
+    position: [-3.25, 0, 0] as const,
   },
   {
     label: "Standard",
@@ -216,7 +217,7 @@ const costSamples = [
       metalness: 0.05,
       roughness: 0.72,
     }),
-    position: [-1.3, 0, 0] as const,
+    position: [-1.95, 0, 0] as const,
   },
   {
     label: "Mapped PBR",
@@ -229,7 +230,7 @@ const costSamples = [
       roughness: 0.55,
       roughnessMap: textureSet.roughness,
     }),
-    position: [0, 0, 0] as const,
+    position: [-0.65, 0, 0] as const,
   },
   {
     label: "Layered",
@@ -243,7 +244,7 @@ const costSamples = [
       roughness: 0.22,
       sheen: 0.7,
     }),
-    position: [1.3, 0, 0] as const,
+    position: [0.65, 0, 0] as const,
   },
   {
     label: "POM stack",
@@ -271,7 +272,19 @@ const costSamples = [
       transmission: 0.28,
       transmissionMap: textureSet.transmission,
     }),
-    position: [2.6, 0, 0] as const,
+    position: [1.95, 0, 0] as const,
+  },
+  {
+    label: "HDR Emissive",
+    material: new MeshStandardMaterial({
+      color: "#07171d",
+      emissive: new Color("#2ecbff").multiplyScalar(5),
+      emissiveIntensity: 1,
+      metalness: 0.08,
+      roughness: 0.32,
+      toneMapped: false,
+    }),
+    position: [3.25, 0, 0] as const,
   },
 ]
 
@@ -470,6 +483,9 @@ function ShaderCostSamples() {
     <group ref={group} position={[0, -1.45, 0]}>
       {costSamples.map((sample) => (
         <group key={sample.label} position={sample.position}>
+          {sample.label === "HDR Emissive" ? (
+            <pointLight color="#2ecbff" distance={2.4} intensity={16} />
+          ) : null}
           <mesh material={sample.material}>
             <sphereGeometry args={[0.48, 72, 36]} />
           </mesh>
@@ -555,21 +571,6 @@ function FoliageOverdrawScene() {
   )
 }
 
-function EmissiveBeacon() {
-  return (
-    <mesh position={[-2.72, 0.42, 0]}>
-      <sphereGeometry args={[0.34, 48, 24]} />
-      <meshStandardMaterial
-        color="#061014"
-        emissive="#6ff7ff"
-        emissiveIntensity={4.2}
-        metalness={0.08}
-        roughness={0.36}
-      />
-    </mesh>
-  )
-}
-
 function MainDemoScene() {
   return (
     <>
@@ -587,7 +588,6 @@ function MainDemoScene() {
         <HdrEnvironment />
         <Helmet />
         <ShaderCostSamples />
-        <EmissiveBeacon />
       </Suspense>
     </>
   )

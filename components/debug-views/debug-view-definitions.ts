@@ -30,7 +30,7 @@ export const DEFAULT_DEBUG_VIEWS = [
   { label: "Wireframe", source: "wireframe", mode: "passthrough" },
   { label: "Lighting Only", source: "lightingOnly", mode: "passthrough" },
   { label: "Reflection Only", source: "reflectionOnly", mode: "passthrough" },
-  { label: "Overdraw", source: "overdraw", mode: "heatmap", scale: 2.5 },
+  { label: "Overlap", source: "overdraw", mode: "heatmap", scale: 2.5 },
   { label: "Estimated Shader Complexity", source: "shaderCost", mode: "heatmap" },
 ] as const satisfies readonly DebugView[]
 
