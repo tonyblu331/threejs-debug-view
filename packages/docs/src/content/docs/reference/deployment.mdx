@@ -21,12 +21,15 @@ For package and docs confidence in one local pass:
 pnpm verify
 ```
 
-For runtime-facing WebGPU changes, also smoke-test the Vite demo in a browser with WebGPU support:
+For runtime-facing WebGPU or demo changes, also run the Playwright demo checks and smoke-test the Vite demo in a browser with native WebGPU support:
 
 ```bash
+pnpm test:e2e
 pnpm dev
 pnpm run build:demo:docs
 ```
+
+The e2e suite is strict in CI. If Chromium cannot start the native WebGPU demo there, the run fails instead of treating the WebGPU gate as a passing fallback.
 
 ## GitHub Pages
 

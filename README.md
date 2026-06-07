@@ -118,8 +118,11 @@ The compose runtime also tracks custom node identity so replacing the node insta
 pnpm verify
 ```
 
-For runtime-facing WebGPU changes, also smoke-test the Vite demo in a browser with WebGPU support:
+For runtime-facing WebGPU or demo changes, also run the Playwright demo checks and smoke-test the Vite demo in a browser with native WebGPU support:
 
 ```bash
+pnpm test:e2e
 pnpm dev
 ```
+
+The e2e suite keeps CI strict: if Chromium cannot start the WebGPU demo in CI, the test fails instead of silently accepting the fallback gate.

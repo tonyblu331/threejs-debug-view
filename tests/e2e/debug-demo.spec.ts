@@ -7,27 +7,33 @@ const allowedConsoleWarningPatterns = [
 ]
 
 test.describe("debug demo controls", () => {
-  test("keeps overlap route, browser history, and Leva view in sync", async ({ page }) => {
+  test("keeps browser history and Leva view in sync", async ({ page }) => {
     const messages = collectRelevantConsoleMessages(page)
 
-    await page.goto("/")
+    await page.goto("/?scene=overdraw&debugView=overdraw")
     await waitForDemoOrSkip(page)
-
-    await page.getByRole("tab", { name: "Overlap" }).click()
     await expect(page).toHaveURL(/scene=overdraw/)
     await expect(page).toHaveURL(/debugView=overdraw/)
-    await expect(page.getByRole("tab", { name: "Overlap" })).toHaveAttribute("aria-selected", "true")
+    await expect(getSceneTab(page, "Overlap")).toHaveAttribute("aria-selected", "true")
     await expectSelectedOption(page, "View", "Overlap")
 
-    await page.goBack()
+    await getSceneTab(page, "Main").click()
     await expect(page).toHaveURL(/\/$/)
-    await expect(page.getByRole("tab", { name: "Main" })).toHaveAttribute("aria-selected", "true")
+    await waitForDemoOrSkip(page)
+    await expect(getSceneTab(page, "Main")).toHaveAttribute("aria-selected", "true")
     await expectSelectedOption(page, "View", "Beauty")
 
-    await page.goForward()
+    await page.goBack()
     await expect(page).toHaveURL(/scene=overdraw/)
-    await expect(page.getByRole("tab", { name: "Overlap" })).toHaveAttribute("aria-selected", "true")
+    await waitForDemoOrSkip(page)
+    await expect(getSceneTab(page, "Overlap")).toHaveAttribute("aria-selected", "true")
     await expectSelectedOption(page, "View", "Overlap")
+
+    await page.goForward()
+    await expect(page).toHaveURL(/\/$/)
+    await waitForDemoOrSkip(page)
+    await expect(getSceneTab(page, "Main")).toHaveAttribute("aria-selected", "true")
+    await expectSelectedOption(page, "View", "Beauty")
     expect(messages).toEqual([])
   })
 
@@ -37,11 +43,11 @@ test.describe("debug demo controls", () => {
     await page.goto("/?scene=overdraw&debugView=overdraw")
     await waitForDemoOrSkip(page)
 
-    await expect(page.getByRole("tab", { name: "Overlap" })).toHaveAttribute("aria-selected", "true")
+    await expect(getSceneTab(page, "Overlap")).toHaveAttribute("aria-selected", "true")
     await expectSelectedOption(page, "View", "Overlap")
     await expect(page.getByText("pixel overlap", { exact: true })).toBeVisible()
 
-    await page.getByRole("tab", { name: "Main" }).click()
+    await getSceneTab(page, "Main").click()
     await expect(page).not.toHaveURL(/debugView=/)
     await expect(page).not.toHaveURL(/scene=/)
     await expectSelectedOption(page, "View", "Beauty")
@@ -115,7 +121,14 @@ function collectRelevantConsoleMessages(page: Page) {
 async function waitForDemoOrSkip(page: Page) {
   await page.waitForFunction(() => {
     const text = document.body.textContent ?? ""
-    return text.includes("Overlap") || text.includes("WebGPU required")
+    const hasTerminalBackend = text.includes("native WebGPU") || text.includes("WebGPU required")
+    const hasSceneTabs = Array.from(document.querySelectorAll('[role="tab"]'))
+      .some((element) => {
+        const rect = element.getBoundingClientRect()
+        return element.textContent?.trim() === "Overlap" && rect.width > 0 && rect.height > 0
+      })
+
+    return hasTerminalBackend && (text.includes("WebGPU required") || hasSceneTabs)
   })
 
   if (await page.getByText("WebGPU required", { exact: true }).isVisible()) {
@@ -125,6 +138,10 @@ async function waitForDemoOrSkip(page: Page) {
 
     test.skip(true, "WebGPU adapter is required for this demo e2e flow.")
   }
+}
+
+function getSceneTab(page: Page, name: string) {
+  return page.locator('button[role="tab"]').filter({ hasText: name })
 }
 
 async function expectSelectedOption(page: Page, label: string, option: string) {

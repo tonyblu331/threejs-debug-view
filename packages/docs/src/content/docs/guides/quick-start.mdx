@@ -57,4 +57,7 @@ Run the project checks before trusting a debug pipeline change:
 ```bash
 pnpm typecheck
 pnpm test
+pnpm test:e2e
 ```
+
+`pnpm test:e2e` exercises the local demo with Chromium and native WebGPU. On machines without native WebGPU it may skip locally, but CI treats that gate as a failure.
