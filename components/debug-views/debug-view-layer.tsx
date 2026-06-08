@@ -30,6 +30,7 @@ export interface DebugViewLayerProps
   initialActiveView?: number
   maxLayoutSlots?: number
   maxPaneCount?: number
+  showEnabledControl?: boolean
 }
 
 export function DebugViewLayer({
@@ -38,12 +39,14 @@ export function DebugViewLayer({
   viewLabels = getDebugViewLabels(views),
   maxLayoutSlots,
   maxPaneCount,
+  showEnabledControl,
   ...props
 }: DebugViewLayerProps) {
   const controls = useDebugViewsControls({
     initialActiveView,
     viewLabels,
     maxPaneCount: maxPaneCount ?? maxLayoutSlots,
+    showEnabledControl,
   }) as DebugViewsControlValues
 
   return (

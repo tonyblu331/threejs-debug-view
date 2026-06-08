@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
   release:
@@ -44,3 +45,23 @@ jobs:
         with:
           files: ${{ steps.pack.outputs.package_file }}
           generate_release_notes: true
+
+      - name: Configure GitHub Packages package metadata
+        run: |
+          npm pkg set name=@tonyblu331/threejs-debug-view
+          npm pkg set publishConfig.registry=https://npm.pkg.github.com
+
+      - name: Pack GitHub Packages package
+        id: pack-github
+        shell: bash
+        run: |
+          package_file="$(pnpm pack --pack-destination . | tail -n 1)"
+          echo "package_file=${package_file}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish to GitHub Packages
+        run: |
+          npm config set @tonyblu331:registry https://npm.pkg.github.com
+          npm config set //npm.pkg.github.com/:_authToken "$NODE_AUTH_TOKEN"
+          npm publish "${{ steps.pack-github.outputs.package_file }}" --registry=https://npm.pkg.github.com
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

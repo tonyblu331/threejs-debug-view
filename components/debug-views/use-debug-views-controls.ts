@@ -24,10 +24,16 @@ interface UseDebugViewsControlsOptions {
   viewLabels?: string[]
   maxPaneCount?: number
   initialActiveView?: number
+  showEnabledControl?: boolean
 }
 
 export function useDebugViewsControls(options: UseDebugViewsControlsOptions = {}) {
-  const { viewLabels = getDebugViewLabels(), initialActiveView = 0, maxPaneCount } = options
+  const {
+    viewLabels = getDebugViewLabels(),
+    initialActiveView = 0,
+    maxPaneCount,
+    showEnabledControl = true,
+  } = options
   const paneLimit = Math.max(1, maxPaneCount ?? viewLabels.length)
   const defaultPaneCount = Math.min(4, paneLimit)
   const paneControlCount = Math.min(8, paneLimit)
@@ -53,7 +59,9 @@ export function useDebugViewsControls(options: UseDebugViewsControlsOptions = {}
     }
 
     return {
-      enabled: { label: "Enabled", value: true },
+      ...(showEnabledControl
+        ? { enabled: { label: "Enabled", value: true } }
+        : {}),
       showLabels: { label: "Viewport labels", value: true },
       activeView: {
         label: "View",
@@ -103,7 +111,7 @@ export function useDebugViewsControls(options: UseDebugViewsControlsOptions = {}
       },
       diagonalAngle: {
         label: "Diagonal angle",
-        value: 35,
+        value: 25,
         min: -45,
         max: 45,
         step: 1,
@@ -120,7 +128,7 @@ export function useDebugViewsControls(options: UseDebugViewsControlsOptions = {}
       },
       ...paneControls,
     }
-  }, [defaultPaneCount, initialActiveView, paneControlCount, paneLimit, viewLabels.length, viewOptions])
+  }, [defaultPaneCount, initialActiveView, paneControlCount, paneLimit, showEnabledControl, viewLabels.length, viewOptions])
 
   useEffect(() => {
     setControls({ activeView: Math.max(0, Math.min(initialActiveView, viewLabels.length - 1)) })
@@ -136,7 +144,8 @@ export function useDebugViewsControls(options: UseDebugViewsControlsOptions = {}
   )
 
   return {
-    ...controls,
+    ...(controls as DebugViewsControlValues),
+    enabled: showEnabledControl ? Boolean(controlValues.enabled) : true,
     viewportViews,
   }
 }

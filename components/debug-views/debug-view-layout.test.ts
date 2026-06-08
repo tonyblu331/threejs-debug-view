@@ -106,7 +106,7 @@ describe("debug view layout", () => {
       columns: 4,
       rows: 1,
       slots: 4,
-      diagonalAngle: 35,
+      diagonalAngle: 25,
     })
     expect(resolveDebugViewLayout("quad")).toMatchObject({ columns: 2, rows: 2, slots: 4 })
   })

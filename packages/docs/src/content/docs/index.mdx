@@ -13,7 +13,7 @@ hero:
       icon: external
 ---
 
-`threejs-debug-view` gives you named debug views for the buffers your scene already produces: beauty, normals, depth, material channels, wireframe, lighting-only, reflection-only, and estimated shader cost.
+`threejs-debug-view` gives you named debug views for the buffers your scene already produces: beauty, normals, depth, material channels, wireframe, lighting-only, reflection-only, overlap, and shader cost.
 
 Use the root package for core helpers and TSL view definitions. Use `threejs-debug-view/r3f` when you want the overlay inside a React Three Fiber `<Canvas>`.
 
@@ -25,7 +25,7 @@ Keep it behind your app's dev flag unless you intentionally publish a debug surf
 
 ## Live demo
 
-Use the controls in the top-right panel to switch views, layouts, opacity, and pane count.
+Use the controls in the top-right panel to switch views, layouts, opacity, and pane count. On the **Shader Cost** view, click the viewport to sample a pixel and align the legend marker with what you clicked.
 
 [Open the demo in a new tab](/threejs-debug-view/demo/)
 
@@ -42,7 +42,7 @@ The demo needs browser WebGPU support. When native WebGPU is unavailable, the ap
 
 ## What it does
 
-- **Built-in sources** for beauty, normals, depth, albedo, roughness, AO, opacity, emissive, wireframe, lighting-only, reflection-only, and shader-cost output.
+- **Built-in sources** for beauty, normals, depth, albedo, roughness, AO, opacity, emissive, wireframe, lighting-only, reflection-only, overlap, and shader cost.
 - **Render layouts** for single, overlay, split, diagonal breakdown, row, column, and grid presentations.
 - **Explicit pane assignments** for fixed views, labels, per-pane cameras, and predictable resolution scaling.
 - **Reusable runtime pipelines** for common material-channel switching without material mutation.

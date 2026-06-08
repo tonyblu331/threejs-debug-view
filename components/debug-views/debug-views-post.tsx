@@ -5,6 +5,7 @@ import { RenderPipeline, type WebGPURenderer } from "three/webgpu"
 import { pass } from "three/tsl"
 import { createViewCompositor, type DebugView } from "./debug-views-tsl/compositor"
 import type { DebugNode, FloatNode } from "./debug-views-tsl/node-types"
+import { readHeatmapCostFromCanvas } from "./debug-views-tsl/heatmap-decode"
 import { createDebugViewUniforms, updateDebugViewUniforms } from "./debug-views-tsl/uniforms"
 import { MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, Vector2, Vector4, type Camera, type Scene } from "three"
 import {
@@ -172,7 +173,35 @@ function DebugViewsPipeline({
     [plan, resolvedLayout],
   )
   const webGpuRenderer = toWebGpuRenderer(gl)
-  const [shaderCostScanPosition, setShaderCostScanPosition] = useState(0.5)
+  const [shaderCostSample, setShaderCostSample] = useState<ShaderCostSample | null>(null)
+
+  useEffect(() => {
+    if (!showsShaderCost) {
+      setShaderCostSample(null)
+      return
+    }
+
+    const canvas = gl.domElement
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (event.button !== 0) return
+
+      const { clientX, clientY } = event
+
+      requestAnimationFrame(() => {
+        const sample = readHeatmapCostFromCanvas(canvas, clientX, clientY)
+        if (!sample) return
+
+        setShaderCostSample(sample)
+      })
+    }
+
+    canvas.addEventListener("pointerdown", handlePointerDown)
+
+    return () => {
+      canvas.removeEventListener("pointerdown", handlePointerDown)
+    }
+  }, [gl, showsShaderCost])
 
   const composePipelineRef = useDebugPipeline(
     !usesViewportRuntime,
@@ -194,7 +223,7 @@ function DebugViewsPipeline({
     uniforms,
   )
 
-  useFrame((frameState) => {
+  useFrame(() => {
     const previousBackground = scene.background
     scene.background = null
 
@@ -212,11 +241,6 @@ function DebugViewsPipeline({
         )
         composePipelineRef.current?.render()
       }
-
-      if (showsShaderCost) {
-        const scanPosition = 0.5 - Math.cos(frameState.clock.elapsedTime * 1.35) * 0.5
-        setShaderCostScanPosition(scanPosition)
-      }
     } finally {
       scene.background = previousBackground
     }
@@ -232,10 +256,10 @@ function DebugViewsPipeline({
           viewportPlan={viewportPlan}
         />
       ) : null}
-      {showsOverdraw && !showsShaderCost ? <OverdrawLegendOverlay /> : null}
+      {showsOverdraw ? <OverdrawLegendOverlay /> : null}
       {showsShaderCost ? (
         <ShaderCostLegendOverlay
-          scanPosition={shaderCostScanPosition}
+          sample={shaderCostSample}
         />
       ) : null}
     </>
@@ -288,19 +312,35 @@ function DebugViewportLabelOverlay({
   )
 }
 
+interface ShaderCostSample {
+  cost: number
+  x: number
+  y: number
+}
+
 function ShaderCostLegendOverlay({
-  scanPosition,
+  sample,
 }: {
-  scanPosition: number
+  sample: ShaderCostSample | null
 }) {
+  const sampleCost = sample?.cost ?? null
+
   return (
     <Html fullscreen style={htmlOverlayStyle}>
-      <div
-        aria-hidden="true"
-        style={{ ...shaderCostScanCursorStyle, left: `${scanPosition * 100}%` }}
-      >
-        <span style={shaderCostScanCursorLabelStyle}>sample</span>
-      </div>
+      {sample ? (
+        <div
+          aria-hidden="true"
+          style={{
+            ...shaderCostSampleCursorStyle,
+            left: sample.x,
+            top: sample.y,
+          }}
+        >
+          <span style={shaderCostSampleCursorRingStyle} />
+          <span style={shaderCostSampleCursorCrosshairHorizontalStyle} />
+          <span style={shaderCostSampleCursorCrosshairVerticalStyle} />
+        </div>
+      ) : null}
       <div
         aria-hidden="true"
         style={shaderCostLegendOverlayStyle}
@@ -309,31 +349,35 @@ function ShaderCostLegendOverlay({
           style={shaderCostLegendPanelStyle}
         >
           <span style={legendLabelStyle}>low shader work</span>
-          <ShaderCostLegendRamp scanPosition={scanPosition} />
+          <ShaderCostLegendRamp sampleCost={sampleCost} />
           <span style={legendLabelStyle}>high shader work</span>
         </div>
         <div
           style={shaderCostLegendNoteStyle}
         >
-          estimated shader complexity sample
+          {sample ? "shader cost sample" : "click viewport to sample shader cost"}
         </div>
       </div>
     </Html>
   )
 }
 
-function ShaderCostLegendRamp({ scanPosition }: { scanPosition: number }) {
-  const markerPercent = `${(scanPosition * 100).toFixed(2)}%`
-  const position = `clamp(30px, ${markerPercent}, calc(100% - 30px))`
+function ShaderCostLegendRamp({ sampleCost }: { sampleCost: number | null }) {
+  const markerPercent = sampleCost === null ? null : `${(sampleCost * 100).toFixed(2)}%`
+  const position = markerPercent === null
+    ? undefined
+    : `clamp(30px, ${markerPercent}, calc(100% - 30px))`
 
   return (
     <div style={shaderCostLegendRampStyle}>
-      <div style={{ ...shaderCostTimingMarkerStyle, left: position }}>
-        <span style={shaderCostTimingMarkerTriangleStyle} />
-        <span style={shaderCostTimingMarkerLabelStyle}>
-          sample
-        </span>
-      </div>
+      {position ? (
+        <div style={{ ...shaderCostTimingMarkerStyle, left: position }}>
+          <span style={shaderCostTimingMarkerTriangleStyle} />
+          <span style={shaderCostTimingMarkerLabelStyle}>
+            sample
+          </span>
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -343,19 +387,19 @@ function OverdrawLegendOverlay() {
     <Html fullscreen style={htmlOverlayStyle}>
       <div
         aria-hidden="true"
-        style={shaderCostLegendOverlayStyle}
+        style={overdrawLegendOverlayStyle}
       >
         <div
-          style={shaderCostLegendPanelStyle}
+          style={overdrawLegendPanelStyle}
         >
           <span style={legendLabelStyle}>no overlap</span>
           <div
-            style={shaderCostLegendRampStyle}
+            style={overdrawLegendRampStyle}
           />
           <span style={legendLabelStyle}>heavy overlap</span>
         </div>
         <div
-          style={shaderCostLegendNoteStyle}
+          style={overdrawLegendNoteStyle}
         >
           pixel overlap
         </div>
@@ -405,34 +449,6 @@ const shaderCostLegendOverlayStyle: CSSProperties = {
   zIndex: 20,
 }
 
-const shaderCostScanCursorStyle: CSSProperties = {
-  border: "2px solid rgba(255, 255, 255, 0.9)",
-  boxShadow: "0 0 0 1px rgba(0, 0, 0, 0.72), 0 0 22px rgba(255, 255, 255, 0.34)",
-  height: 46,
-  bottom: 118,
-  position: "absolute",
-  transform: "translateX(-50%)",
-  transition: "left 90ms linear",
-  width: 46,
-  zIndex: 19,
-}
-
-const shaderCostScanCursorLabelStyle: CSSProperties = {
-  background: "rgba(0, 0, 0, 0.72)",
-  border: "1px solid rgba(255, 255, 255, 0.28)",
-  color: "#fff",
-  fontFamily: "monospace",
-  fontSize: 11,
-  left: 8,
-  letterSpacing: "0.06em",
-  lineHeight: 1,
-  padding: "4px 6px",
-  position: "absolute",
-  textTransform: "uppercase",
-  top: 0,
-  whiteSpace: "nowrap",
-}
-
 const shaderCostLegendPanelStyle: CSSProperties = {
   alignItems: "center",
   background: "rgba(0, 0, 0, 0.62)",
@@ -444,6 +460,46 @@ const shaderCostLegendPanelStyle: CSSProperties = {
   gridTemplateColumns: "auto 1fr auto",
   padding: "8px 10px",
   width: "100%",
+}
+
+const shaderCostSampleCursorStyle: CSSProperties = {
+  height: 46,
+  pointerEvents: "none",
+  position: "fixed",
+  transform: "translate(-50%, -50%)",
+  width: 46,
+  zIndex: 19,
+}
+
+const shaderCostSampleCursorRingStyle: CSSProperties = {
+  border: "2px solid rgba(255, 255, 255, 0.92)",
+  borderRadius: "999px",
+  boxShadow: "0 0 0 1px rgba(0, 0, 0, 0.72), 0 0 18px rgba(255, 255, 255, 0.28)",
+  display: "block",
+  height: 46,
+  width: 46,
+}
+
+const shaderCostSampleCursorCrosshairHorizontalStyle: CSSProperties = {
+  background: "rgba(255, 255, 255, 0.92)",
+  boxShadow: "0 0 0 1px rgba(0, 0, 0, 0.72)",
+  height: 1,
+  left: "50%",
+  position: "absolute",
+  top: "50%",
+  transform: "translate(-50%, -50%)",
+  width: 62,
+}
+
+const shaderCostSampleCursorCrosshairVerticalStyle: CSSProperties = {
+  background: "rgba(255, 255, 255, 0.92)",
+  boxShadow: "0 0 0 1px rgba(0, 0, 0, 0.72)",
+  height: 62,
+  left: "50%",
+  position: "absolute",
+  top: "50%",
+  transform: "translate(-50%, -50%)",
+  width: 1,
 }
 
 const shaderCostLegendRampStyle: CSSProperties = {
@@ -477,7 +533,6 @@ const shaderCostTimingMarkerStyle: CSSProperties = {
   height: 22,
   position: "absolute",
   transform: "translateX(-50%)",
-  transition: "left 220ms ease",
   width: 0,
 }
 
@@ -505,6 +560,27 @@ const shaderCostTimingMarkerTriangleStyle: CSSProperties = {
   left: -5,
   position: "absolute",
   top: -1,
+}
+
+const overdrawLegendOverlayStyle: CSSProperties = {
+  ...shaderCostLegendOverlayStyle,
+}
+
+const overdrawLegendPanelStyle: CSSProperties = {
+  ...shaderCostLegendPanelStyle,
+}
+
+const overdrawLegendRampStyle: CSSProperties = {
+  background:
+    "linear-gradient(90deg, #000 0%, #101820 18%, #2f4f7f 48%, #9ec5ff 78%, #fff 100%)",
+  border: "1px solid rgba(255, 255, 255, 0.24)",
+  borderRadius: 0,
+  height: 12,
+  position: "relative",
+}
+
+const overdrawLegendNoteStyle: CSSProperties = {
+  ...shaderCostLegendNoteStyle,
 }
 
 function createLabelGridStyle(layout: ResolvedDebugViewLayout): CSSProperties {

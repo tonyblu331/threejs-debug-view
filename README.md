@@ -6,7 +6,7 @@
 
 Small debug views for Three.js WebGPU + TSL render pipelines.
 
-It lets you inspect what your scene is producing while you build: beauty, normals, depth, material channels, override views, and estimated shader complexity. It is focused on WebGPU debugging, not on being a full scene inspector.
+It lets you inspect what your scene is producing while you build: beauty, normals, depth, material channels, override views, overlap, and shader cost. It is focused on WebGPU debugging, not on being a full scene inspector.
 
 ## Install
 
@@ -41,7 +41,7 @@ Keep the overlay behind your app's dev flag. The package is publishable, but deb
 
 ## What It Shows
 
-Built-in debug sources include beauty, normal, depth, base color, material normal, emissive, roughness, AO, metallic, opacity, wireframe, lighting-only, reflection-only, overlap, and estimated shader complexity.
+Built-in debug sources include beauty, normal, depth, base color, material normal, emissive, roughness, AO, metallic, opacity, wireframe, lighting-only, reflection-only, overlap, and shader cost.
 
 Material scalars are packed into one RGBA target:
 
@@ -54,13 +54,15 @@ Material-normal uses a focused material-detail pass. Emissive shares the reusabl
 
 Roughness, metallic, AO, opacity, and emissive use shader-side defaults when a material does not support the property. The debug runtime does not patch scene materials to make a view compile. AO reads material-authored AO maps; it is not a screen-space AO buffer unless you provide one as a custom view or pass-backed source.
 
-`shaderCost` is an estimate, not a native GPU instruction counter. It scores materials through source-labeled shader-unit buckets such as ALU proxy work, texture samples, dependent texture risk, branch/discard pressure, bandwidth pressure, and confidence. Overlap and render-pass timing are separate diagnostics, not shader-cost inputs.
+`shaderCost` is an estimate, not a native GPU instruction counter. It scores materials through source-labeled shader-unit buckets such as ALU proxy work, texture samples, dependent texture risk, branch/discard pressure, bandwidth pressure, and confidence. Overlap and render-pass timing are separate diagnostics, not shader-cost inputs. In the bundled demo overlay, click the viewport to place an inspector-style sample cursor and read the matching point on the legend ramp.
+
+The demo overlay hides the Leva `Enabled` toggle because the demo is always showing debug views. Pass `showEnabledControl={false}` to `DebugViewLayer` to match that behavior.
 
 ## Presentation Routing
 
 `DebugViews` routes presentation from the props you provide. Simple layouts and pane assignments use the fullscreen TSL compositor. When a pane needs a custom camera or `resolutionScale`, it uses viewport/scissor presentation.
 
-`layout` and `paneCount` define the pane geometry. `viewportViews` assigns content to those panes. Use `split-diagonal` with `diagonalAngle` for a two-pane slanted split, or `breakdown` for a four-view diagonal material breakdown. The bundled controls clamp diagonal layouts to `45` degrees by default; `breakdown` starts at `35` degrees for a restrained ArtStation/Marmoset-style presentation.
+`layout` and `paneCount` define the pane geometry. `viewportViews` assigns content to those panes. Use `split-diagonal` with `diagonalAngle` for a two-pane slanted split, or `breakdown` for a four-view diagonal material breakdown. The bundled controls clamp diagonal layouts to `45` degrees by default; `breakdown` starts at `25` degrees for a restrained ArtStation/Marmoset-style presentation.
 
 ```tsx
 <DebugViews

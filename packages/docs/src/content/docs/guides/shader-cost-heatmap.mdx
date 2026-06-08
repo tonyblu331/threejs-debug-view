@@ -1,6 +1,6 @@
 ---
-title: Estimated Shader Complexity Heatmap
-description: Use the shader-complexity view to spot expensive program/material signals without treating it as a GPU profiler.
+title: Shader Cost Heatmap
+description: Use the shader-cost view to spot expensive program/material signals without treating it as a GPU profiler.
 ---
 
 The `shaderCost` view renders the scene with temporary bucketed override materials, then colorizes the result as a heatmap.
@@ -31,6 +31,16 @@ The heatmap is normalized from `0` to `1`:
 `shaderCost` is an estimate. Browsers do not expose portable shader instruction counts through this API, so the view reports source-labeled shader-unit buckets instead of native ALU/TEX counters. Overlap and render-pass timing are separate diagnostics, not shader-cost inputs.
 :::
 
+## Click-to-sample inspector
+
+When the active layout includes `shaderCost`, the overlay shows a legend ramp and a prompt to click the viewport.
+
+- Click a pixel to place a centered crosshair on that screen point.
+- The legend marker moves to the decoded heatmap cost for that pixel.
+- Overlap keeps its own legend ramp and does not share the shader-cost sampling UI.
+
+This is a viewport inspector aid, not a GPU timestamp query or pass timer.
+
 ## What increases complexity
 
 The scorer infers active program/material signals into shader-unit buckets that commonly produce heavier shader paths:
@@ -54,7 +64,7 @@ That keeps the override pass predictable instead of creating one material per me
   views={DEFAULT_DEBUG_VIEWS}
   viewportViews={[
     { view: "beauty", label: "Beauty" },
-    { view: "shaderCost", label: "Estimated Shader Complexity", resolutionScale: 0.5 },
+    { view: "shaderCost", label: "Shader Cost", resolutionScale: 0.5 },
   ]}
   layout="split-h"
   paneCount={2}

@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Click-to-sample shader cost inspector in the demo overlay with a centered viewport crosshair and legend marker synced to the clicked pixel.
+- `showEnabledControl` on `DebugViewLayer` to hide the Leva `Enabled` toggle when debug views should always stay mounted.
+
+### Changed
+- Renamed the built-in `shaderCost` label from **Estimated Shader Complexity** to **Shader Cost**.
+- Separated overlap and shader-cost legend UI so multi-pane layouts can show both diagnostics without shared ramp styling.
+- Default `breakdown` diagonal angle is now `25` degrees instead of `35`.
+- Release workflow publishes to GitHub Packages in addition to npm.
+
 ## [0.2.4] - 2026-06-08
 
 ### Changed

@@ -21,6 +21,7 @@ Important props:
 | `views` | Optional custom view list. Defaults to `DEFAULT_DEBUG_VIEWS`. |
 | `viewLabels` | Optional labels passed to the bundled Leva controls. |
 | `maxPaneCount` | Upper bound for panes, rows, and columns in the controls. |
+| `showEnabledControl` | Shows the Leva `Enabled` toggle. Defaults to `true`. The demo sets this to `false`. |
 
 ## `DebugViews`
 
@@ -37,7 +38,7 @@ Important props:
 | `activeView` | Selected view for single/overlay flows. |
 | `layout` | Layout preset or layout config. |
 | `paneCount` | Number of visible panes for row, column, and grid layouts. |
-| `diagonalAngle` | Angle in degrees for `split-diagonal` and `breakdown`. `breakdown` defaults to `35` degrees. |
+| `diagonalAngle` | Angle in degrees for `split-diagonal` and `breakdown`. `breakdown` defaults to `25` degrees. |
 | `maxDiagonalAngle` | Optional override for the default `45` degree diagonal angle clamp. |
 | `viewportViews` | Explicit pane assignments for fixed views, labels, cameras, or resolution scale. |
 | `showLabels` | Renders DOM labels over panes. |
@@ -92,8 +93,8 @@ Built-in `DebugViewSource` values:
 | `wireframe` | Override-material pass. |
 | `lightingOnly` | Neutral lighting override pass. |
 | `reflectionOnly` | Reflective override pass. |
-| `overdraw` | Heatmap-style overdraw diagnostic. |
-| `shaderCost` | Estimated shader-complexity heatmap from shader-unit buckets. |
+| `overdraw` | Heatmap-style overlap diagnostic with a separate legend ramp. |
+| `shaderCost` | Shader-cost heatmap from shader-unit buckets. Click the viewport in the bundled overlay to sample a pixel. |
 
 `shaderCost` is not a native GPU instruction counter. Render-pass timing and overlap diagnostics are separate signals, not ALU/TEX/occupancy data.
 

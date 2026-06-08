@@ -31,7 +31,7 @@ export const DEFAULT_DEBUG_VIEWS = [
   { label: "Lighting Only", source: "lightingOnly", mode: "passthrough" },
   { label: "Reflection Only", source: "reflectionOnly", mode: "passthrough" },
   { label: "Overlap", source: "overdraw", mode: "heatmap", scale: 2.5 },
-  { label: "Estimated Shader Complexity", source: "shaderCost", mode: "heatmap" },
+  { label: "Shader Cost", source: "shaderCost", mode: "heatmap" },
 ] as const satisfies readonly DebugView[]
 
 export function getDebugViewLabels(views: readonly DebugView[] = DEFAULT_DEBUG_VIEWS) {

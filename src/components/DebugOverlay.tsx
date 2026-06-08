@@ -24,6 +24,7 @@ export function DebugOverlay({ debugViewSource }: { debugViewSource?: string | n
       views={views}
       viewLabels={VIEW_LABELS}
       initialActiveView={forcedView < 0 ? 0 : forcedView}
+      showEnabledControl={false}
     />
   )
 }
