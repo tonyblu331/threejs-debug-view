@@ -47,7 +47,7 @@ Three already requests supported WebGPU features internally, and then disables t
 
 ### Debug Render Graph
 
-Use `components/debug-views/debug-views-post.tsx`:
+Use `components/debug-views/debug-views-r3f.tsx`, `components/debug-views/debug-viewport-renderer.ts`, and `components/debug-views/debug-pipeline-runtime.ts`:
 
 - `pass(scene, camera)` already creates the debug passes
 - `RenderPipeline` already owns post-processing output

@@ -7,6 +7,18 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 
 [View the full changelog on GitHub](https://github.com/tonyblu331/threejs-debug-view/blob/master/CHANGELOG.md)
 
+## [0.2.11] — 2026-06-08
+
+### Added
+- Viewport renderer module (`debug-viewport-renderer.ts`) with GL state-restore unit tests.
+- `requiresViewportRuntime()` exported from viewport planning helpers.
+- Playwright headless flow specs and demo `?e2e=*` URL presets.
+
+### Changed
+- Headless runtime split: compose pipeline vs multi-pane viewport orchestration. Root API unchanged.
+- Viewport renderer caches pane rects, documents compositor vs scissor differences, and dev-warns on graph mismatches.
+- Published ESM gzip: 26 kB.
+
 ## [0.2.10] — 2026-06-08
 
 ### Added

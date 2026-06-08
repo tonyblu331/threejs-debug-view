@@ -27,10 +27,9 @@ import type { DebugViewsOptions } from "./debug-views-options"
 import {
   createDebugPipelineRuntime,
   createDebugPipelineRuntimeKey,
-  createDebugViewportRenderer,
-  requiresViewportRuntime,
-  type DebugViewportRenderer,
 } from "./debug-pipeline-runtime"
+import { requiresViewportRuntime } from "./debug-viewport-plan"
+import { createDebugViewportRenderer, type DebugViewportRenderer } from "./debug-viewport-renderer"
 import {
   DebugViewportLabelOverlay,
   OverdrawLegendOverlay,
@@ -203,6 +202,8 @@ function DebugViewsPipeline({
     viewportGraph,
     webGpuRenderer,
     uniforms,
+    overlayOpacity,
+    dividerStyle,
   )
 
   useFrame(() => {
@@ -282,6 +283,8 @@ function useDebugViewportPipelines(
   viewportGraph: DebugViewportRenderGraphPlan | undefined,
   gl: WebGPURenderer,
   uniforms: DebugViewUniforms,
+  overlayOpacity: number,
+  dividerStyle: Pick<DebugViewsOptions, "lineWidth" | "edgeColor" | "coreColor">,
 ) {
   const runtimeRef = useRef<DebugViewportRenderer | null>(null)
   const passRuntimeKey = useMemo(
@@ -299,6 +302,8 @@ function useDebugViewportPipelines(
       viewportPlan,
       viewportGraph,
       uniforms,
+      overlayOpacity,
+      dividerStyle,
     })
 
     runtimeRef.current = renderer
@@ -307,7 +312,7 @@ function useDebugViewportPipelines(
       renderer.dispose()
       runtimeRef.current = null
     }
-  }, [enabled, scene, defaultCamera, viewportPlan, passRuntimeKey, viewportGraph, gl, uniforms])
+  }, [enabled, scene, defaultCamera, viewportPlan, passRuntimeKey, viewportGraph, gl, uniforms, overlayOpacity, dividerStyle])
 
   return runtimeRef
 }

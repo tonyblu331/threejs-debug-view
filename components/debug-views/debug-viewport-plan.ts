@@ -125,3 +125,7 @@ function clampIndex(index: number, length: number) {
   if (length <= 0) return 0
   return Math.max(0, Math.min(index, length - 1))
 }
+
+export function requiresViewportRuntime(plan: DebugViewportPlan) {
+  return plan.cells.some((cell) => cell.camera || cell.resolutionScale !== 1)
+}

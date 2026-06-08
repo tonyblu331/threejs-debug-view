@@ -145,6 +145,9 @@ See [Batteries Included](/threejs-debug-view/guides/batteries-included/) for wha
 The repository demo and docs are separate from the package source:
 
 - `components/debug-views/` contains package source.
+- `debug-pipeline-runtime.ts` — single-viewport `RenderPipeline` factory.
+- `debug-viewport-renderer.ts` — multi-pane scissor/viewport orchestration (restores GL state after each frame).
+- `debug-viewport-plan.ts` — pane assignments, cells, and `requiresViewportRuntime()`.
 - `src/` contains the Vite demo app.
 - `packages/docs/` contains the Astro documentation site.
 
@@ -152,9 +155,24 @@ The repository demo and docs are separate from the package source:
 
 Import from `threejs-debug-view` when your app owns the WebGPU render loop:
 
+| API | Use when |
+| --- | --- |
+| `createDebugPipelineRuntime()` | Single compositor output (overlay, breakdown, grid, etc.) |
+| `createDebugViewportRenderer()` | Panes need different `resolutionScale` or per-pane cameras |
+| `requiresViewportRuntime()` | Choosing between the two paths after `createDebugViewportPlan()` |
+
+`createDebugViewportRenderer()` options:
+
+| Option | Default | Notes |
+| --- | --- | --- |
+| `overlayOpacity` | `1` | Per-pane opacity. Viewport cells are opaque single-view passes, not compositor overlay blends. |
+| `dividerStyle` | — | Forwarded to uniforms only; TSL dividers are not drawn between scissor panes. |
+
+Pane rects from `createDebugViewportRects()` are cached when the renderer is constructed. Rebuild the renderer when the plan changes.
+
+Core helpers:
+
 - `createDebugRenderPlan()` — pass and pipeline view selection for a layout
-- `createDebugPipelineRuntime()` — single-viewport `RenderPipeline` lifecycle
-- `createDebugViewportRenderer()` — multi-pane scissor/viewport rendering
 - `createDebugPipelineRuntimeKey()` — stable rebuild key for runtime caches
 - `createDebugViewUniforms()` / `updateDebugViewUniforms()` — TSL uniform state
 - `readHeatmapCostFromCanvas()` — shader-cost pixel sampling
@@ -170,6 +188,7 @@ See [Headless Runtime](/threejs-debug-view/guides/headless-runtime/) for a full 
 - `createDebugViewportRenderer()`
 - `createDebugViewportPlan()`
 - `createDebugViewportRenderGraphPlan()`
+- `requiresViewportRuntime()`
 - `createDebugViewportLabels()`
 - `createDebugViewportRects()`
 - `DebugViewLayer` from `threejs-debug-view/r3f`

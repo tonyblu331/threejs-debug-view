@@ -5,12 +5,7 @@ import {
   getDebugViewLabels,
   type DebugView,
 } from "threejs-debug-view"
-import { isSocialCapture } from "../demo/capture-mode"
-import {
-  SOCIAL_CAPTURE_DIAGONAL_ANGLE,
-  SOCIAL_CAPTURE_LAYOUT,
-  SOCIAL_CAPTURE_VIEWPORT,
-} from "../demo/social-capture-preset"
+import { getDebugDemoPreset } from "../demo/debug-e2e-presets"
 
 const VIEW_LABELS = getDebugViewLabels()
 
@@ -23,7 +18,7 @@ export function DebugOverlay({ debugViewSource }: { debugViewSource?: string | n
   const forcedView = forcedDebugView
     ? views.findIndex((view) => view.source === forcedDebugView)
     : -1
-  const socialCapture = isSocialCapture()
+  const preset = getDebugDemoPreset()
 
   return (
     <DebugViewLayer
@@ -31,12 +26,12 @@ export function DebugOverlay({ debugViewSource }: { debugViewSource?: string | n
       viewLabels={VIEW_LABELS}
       initialActiveView={forcedView < 0 ? 0 : forcedView}
       showEnabledControl={false}
-      showLabels={socialCapture ? true : undefined}
-      showLegends={socialCapture ? true : undefined}
-      showLeva={socialCapture ? false : undefined}
-      layout={socialCapture ? SOCIAL_CAPTURE_LAYOUT : undefined}
-      diagonalAngle={socialCapture ? SOCIAL_CAPTURE_DIAGONAL_ANGLE : undefined}
-      viewportViews={socialCapture ? SOCIAL_CAPTURE_VIEWPORT : undefined}
+      showLabels={preset?.showLabels}
+      showLegends={preset?.showLegends}
+      showLeva={preset?.showLeva}
+      layout={preset?.layout}
+      diagonalAngle={preset?.diagonalAngle}
+      viewportViews={preset?.viewportViews}
     />
   )
 }

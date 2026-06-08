@@ -197,7 +197,9 @@ Owns:
 
 Relevant files:
 
-- `components/debug-views/debug-views-post.tsx`
+- `components/debug-views/debug-views-r3f.tsx`
+- `components/debug-views/debug-viewport-renderer.ts`
+- `components/debug-views/debug-pipeline-runtime.ts`
 - `components/debug-views/debug-render-plan.ts`
 - `components/debug-views/debug-views-tsl/compositor.ts`
 - `components/debug-views/debug-views-tsl/visualize.ts`

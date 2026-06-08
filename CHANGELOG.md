@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.11] - 2026-06-08
+
+### Added
+- `createDebugViewportRenderer` extracted to `debug-viewport-renderer.ts` with unit tests for GL viewport/scissor restore and multi-cell rendering.
+- `requiresViewportRuntime()` on the viewport planning layer (`debug-viewport-plan.ts`).
+- Demo e2e URL presets (`?e2e=*`) and Playwright flow specs for social capture, viewport-scaled panes, labels, legends, and shader-cost click sampling.
+
+### Changed
+- Headless module split: compose runtime (`debug-pipeline-runtime.ts`) vs multi-pane viewport orchestration (`debug-viewport-renderer.ts`). Public root exports unchanged.
+- Viewport renderer caches pane rects at construction, accepts `overlayOpacity` / `dividerStyle`, and warns once in dev on mismatched render-graph cells.
+- Shared diagnostic legend ramp base styles in overlay components.
+- Published ESM gzip badge: 26 kB.
+
 ## [0.2.10] - 2026-06-08
 
 ### Added

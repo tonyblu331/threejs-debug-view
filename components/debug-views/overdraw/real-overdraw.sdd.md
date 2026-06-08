@@ -184,7 +184,9 @@ flowchart LR
   - register measured `overdraw`
 - `components/debug-views/debug-render-plan.ts`
   - distinguish `usesOverdrawVisualPass` from `usesMeasuredOverdrawPass`
-- `components/debug-views/debug-views-post.tsx`
+- `components/debug-views/debug-views-r3f.tsx`
+- `components/debug-views/debug-viewport-renderer.ts`
+- `components/debug-views/debug-pipeline-runtime.ts`
   - route measured overdraw through counter runtime, not `pass(scene, camera)` replacement material only
 - `components/debug-views/debug-views-tsl/default-debug-nodes.ts`
   - resolve measured overdraw texture/counter visualization

@@ -1,9 +1,6 @@
 import {
   MeshBasicMaterial,
   MeshStandardMaterial,
-  PerspectiveCamera,
-  Vector2,
-  Vector4,
   type Camera,
   type Scene,
 } from "three"
@@ -16,7 +13,7 @@ import {
   configureSceneDebugPass,
   createDefaultDebugNodeResolver,
 } from "./debug-views-tsl/default-debug-nodes"
-import { createDebugViewUniforms, updateDebugViewUniforms, type DebugViewUniforms } from "./debug-views-tsl/uniforms"
+import { type DebugViewUniforms } from "./debug-views-tsl/uniforms"
 import { getDefaultDebugViewSource, getResolvedDebugViewMode } from "./debug-view-selection"
 import {
   applyDebugTextureTypes,
@@ -24,12 +21,6 @@ import {
   type DebugRenderPlan,
 } from "./debug-render-plan"
 import type { ResolvedDebugViewLayout } from "./debug-view-layout"
-import type { DebugViewportPlan } from "./debug-viewport-plan"
-import type { DebugViewportRenderGraphPlan } from "./debug-render-graph-plan"
-import {
-  createDebugViewportRects,
-  toDebugViewportPixels,
-} from "./debug-viewport-presenter"
 import {
   createShaderCostOverride,
   type ShaderCostOverride,
@@ -42,11 +33,6 @@ import {
 export interface DebugPipelineRuntime {
   pipeline: RenderPipeline
   setViewport: (x: number, y: number, width: number, height: number) => void
-  dispose: () => void
-}
-
-export interface DebugViewportRenderer {
-  render: () => void
   dispose: () => void
 }
 
@@ -79,10 +65,6 @@ export const SINGLE_VIEW_LAYOUT: ResolvedDebugViewLayout = {
   rows: 1,
   slots: 1,
   diagonalAngle: 0,
-}
-
-export function requiresViewportRuntime(plan: DebugViewportPlan) {
-  return plan.cells.some((cell) => cell.camera || cell.resolutionScale !== 1)
 }
 
 export function createDebugPipelineRuntime(
@@ -224,121 +206,6 @@ export function createDebugPipelineRuntimeKey(
     plan.usesOverdrawPass,
     plan.usesShaderCostPass,
   ].join(";")
-}
-
-export interface CreateDebugViewportRendererOptions {
-  gl: WebGPURenderer
-  scene: Scene
-  defaultCamera: Camera
-  viewportPlan: DebugViewportPlan
-  viewportGraph: DebugViewportRenderGraphPlan
-  uniforms: DebugViewUniforms
-}
-
-export function createDebugViewportRenderer({
-  gl,
-  scene,
-  defaultCamera,
-  viewportPlan,
-  viewportGraph,
-  uniforms,
-}: CreateDebugViewportRendererOptions): DebugViewportRenderer {
-  const passRuntimes = viewportGraph.passes.map((graphPass) => {
-    const passPlan = createDebugRenderPlan([graphPass.view], 0, SINGLE_VIEW_LAYOUT)
-    const camera = graphPass.camera ?? defaultCamera
-
-    return {
-      camera,
-      runtime: createDebugPipelineRuntime(
-        scene,
-        camera,
-        passPlan,
-        SINGLE_VIEW_LAYOUT,
-        gl,
-        uniforms,
-        graphPass.resolutionScale,
-      ),
-    }
-  })
-  const rendererSize = new Vector2()
-  const previousViewport = new Vector4()
-  const previousScissor = new Vector4()
-  const cameraAspects = new Map<PerspectiveCamera, number>()
-
-  return {
-    render: () => {
-      const rects = createDebugViewportRects(viewportPlan)
-      gl.getSize(rendererSize)
-      const previousScissorTest = gl.getScissorTest()
-      gl.getViewport(previousViewport)
-      gl.getScissor(previousScissor)
-      gl.setScissorTest(false)
-      gl.setViewport(0, 0, rendererSize.x, rendererSize.y)
-      gl.clear(true, true, false)
-      gl.setScissorTest(true)
-
-      try {
-        for (const cell of viewportGraph.cells) {
-          const rect = rects[cell.index]
-          const passRuntime = passRuntimes[cell.passIndex]
-          if (!rect || !passRuntime) continue
-
-          const viewportRect = toDebugViewportPixels(rect.scissor, rendererSize)
-          gl.setViewport(viewportRect.x, viewportRect.y, viewportRect.width, viewportRect.height)
-          gl.setScissor(viewportRect.x, viewportRect.y, viewportRect.width, viewportRect.height)
-          passRuntime.runtime.setViewport(
-            0,
-            0,
-            viewportRect.width,
-            viewportRect.height,
-          )
-          setCameraAspectForViewport(
-            passRuntime.camera,
-            viewportRect.width,
-            viewportRect.height,
-            cameraAspects,
-          )
-          updateDebugViewUniforms(uniforms, 0, SINGLE_VIEW_LAYOUT, 1, 1)
-          passRuntime.runtime.pipeline.render()
-        }
-      } finally {
-        restoreCameraAspects(cameraAspects)
-        gl.setViewport(previousViewport)
-        gl.setScissor(previousScissor)
-        gl.setScissorTest(previousScissorTest)
-      }
-    },
-    dispose: () => {
-      for (const passRuntime of passRuntimes) {
-        passRuntime.runtime.dispose()
-      }
-    },
-  }
-}
-
-function setCameraAspectForViewport(
-  camera: Camera,
-  width: number,
-  height: number,
-  previousAspects: Map<PerspectiveCamera, number>,
-) {
-  if (!(camera instanceof PerspectiveCamera) || height <= 0) return
-
-  if (!previousAspects.has(camera)) {
-    previousAspects.set(camera, camera.aspect)
-  }
-
-  camera.aspect = width / height
-  camera.updateProjectionMatrix()
-}
-
-function restoreCameraAspects(previousAspects: Map<PerspectiveCamera, number>) {
-  for (const [camera, aspect] of previousAspects) {
-    camera.aspect = aspect
-    camera.updateProjectionMatrix()
-  }
-
-  previousAspects.clear()
 }
 
 const customNodeKeys = new WeakMap<DebugNode, number>()

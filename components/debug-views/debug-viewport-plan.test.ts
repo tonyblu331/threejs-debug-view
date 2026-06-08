@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest"
 import { float } from "three/tsl"
 import { DEFAULT_DEBUG_VIEWS } from "./debug-view-definitions"
 import { createCustomDebugView } from "./custom-debug-view"
-import { createDebugViewportPlan } from "./debug-viewport-plan"
+import { createDebugViewportPlan, requiresViewportRuntime } from "./debug-viewport-plan"
 import { createDebugViewportRenderGraphPlan } from "./debug-render-graph-plan"
 
 describe("debug viewport plan", () => {
@@ -168,5 +168,21 @@ describe("debug viewport plan", () => {
     expect(graph.passes[0]?.view.id).toBe("shader:fresnel")
     expect(graph.passes[1]?.view.id).toBe("shader:fresnel")
     expect(graph.cells.map((cell) => cell.passIndex)).toEqual([0, 1])
+  })
+
+  it("detects when viewport runtime is required", () => {
+    const uniformPlan = createDebugViewportPlan({
+      views: DEFAULT_DEBUG_VIEWS,
+      viewportViews: [{ view: "beauty" }, { view: "normal" }],
+      layout: "split-h",
+    })
+    const scaledPlan = createDebugViewportPlan({
+      views: DEFAULT_DEBUG_VIEWS,
+      viewportViews: [{ view: "beauty" }, { view: "normal", resolutionScale: 0.5 }],
+      layout: "split-h",
+    })
+
+    expect(requiresViewportRuntime(uniformPlan)).toBe(false)
+    expect(requiresViewportRuntime(scaledPlan)).toBe(true)
   })
 })

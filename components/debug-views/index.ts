@@ -22,6 +22,7 @@ export {
 
 export {
   createDebugViewportPlan,
+  requiresViewportRuntime,
   type DebugViewportCell,
   type DebugViewportPlan,
   type DebugViewportPlanOptions,
@@ -96,13 +97,15 @@ export {
 export {
   createDebugPipelineRuntime,
   createDebugPipelineRuntimeKey,
-  createDebugViewportRenderer,
-  requiresViewportRuntime,
   SINGLE_VIEW_LAYOUT,
-  type CreateDebugViewportRendererOptions,
   type DebugPipelineRuntime,
-  type DebugViewportRenderer,
 } from "./debug-pipeline-runtime"
+
+export {
+  createDebugViewportRenderer,
+  type CreateDebugViewportRendererOptions,
+  type DebugViewportRenderer,
+} from "./debug-viewport-renderer"
 
 export {
   createPaneAssignmentsKey,

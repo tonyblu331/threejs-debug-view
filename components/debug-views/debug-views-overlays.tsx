@@ -317,14 +317,18 @@ const shaderCostSampleCursorCrosshairVerticalStyle: CSSProperties = {
   width: 1,
 }
 
-const shaderCostLegendRampStyle: CSSProperties = {
-  background:
-    "linear-gradient(90deg, #000 0%, #000 6%, #00ff1f 18%, #fff000 48%, #ff0d00 80%, #fff 100%)",
+const diagnosticLegendRampBaseStyle: CSSProperties = {
   border: "1px solid rgba(255, 255, 255, 0.24)",
   borderRadius: 0,
   height: 12,
-  overflow: "visible",
   position: "relative",
+}
+
+const shaderCostLegendRampStyle: CSSProperties = {
+  ...diagnosticLegendRampBaseStyle,
+  background:
+    "linear-gradient(90deg, #000 0%, #000 6%, #00ff1f 18%, #fff000 48%, #ff0d00 80%, #fff 100%)",
+  overflow: "visible",
 }
 
 const legendNoteStyle: CSSProperties = {
@@ -354,12 +358,9 @@ const shaderCostTimingMarkerTriangleStyle: CSSProperties = {
 }
 
 const overdrawLegendRampStyle: CSSProperties = {
+  ...diagnosticLegendRampBaseStyle,
   background:
     "linear-gradient(90deg, #000 0%, #101820 18%, #2f4f7f 48%, #9ec5ff 78%, #fff 100%)",
-  border: "1px solid rgba(255, 255, 255, 0.24)",
-  borderRadius: 0,
-  height: 12,
-  position: "relative",
 }
 
 function createLabelGridStyle(layout: ResolvedDebugViewLayout): CSSProperties {

@@ -81,9 +81,19 @@ Useful knobs:
 Import from `threejs-debug-view` when you need the canonical runtime without React:
 
 - `DEFAULT_DEBUG_VIEWS` and render-plan utilities
-- `createDebugPipelineRuntime` / `createDebugViewportRenderer` for WebGPU render loops
+- `createDebugPipelineRuntime` for single compositor output
+- `createDebugViewportRenderer` for multi-pane scissor/viewport rendering
+- `requiresViewportRuntime` to pick the headless render path
 - TSL compositor helpers and shader-cost / overlap override builders
 - `DebugViewsOptions` and layout/pane control helpers
+
+Headless source modules (published as ESM in `dist/`):
+
+| Module | Role |
+| --- | --- |
+| `debug-pipeline-runtime` | `RenderPipeline` factory for compositor layouts |
+| `debug-viewport-renderer` | Multi-pane GL orchestration with state restore |
+| `debug-viewport-plan` | Pane cells, assignments, `requiresViewportRuntime()` |
 
 This is the headless layer. It does not mount DOM labels, Leva, or a canvas overlay by itself. See [Headless Runtime](/threejs-debug-view/guides/headless-runtime/) for a full example.
 

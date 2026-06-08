@@ -83,10 +83,45 @@ const viewportRenderer = createDebugViewportRenderer({
   viewportPlan,
   viewportGraph,
   uniforms,
+  overlayOpacity: 1, // default; opaque per-pane passes (see below)
 })
 
 // In your loop:
 viewportRenderer.render()
+```
+
+`createDebugViewportRenderer` clears the full canvas, renders each pane with scissor/viewport routing, adjusts per-pane camera aspect when needed, and restores the renderer's previous viewport/scissor state in a `finally` block.
+
+### Viewport path vs compositor path
+
+The viewport renderer is **not** the TSL compositor. Each pane is drawn as its own `single`-layout pass into a scissor rect:
+
+| Compositor (`createDebugPipelineRuntime`) | Viewport (`createDebugViewportRenderer`) |
+| --- | --- |
+| One shader graph blends multiple views | One pass per pane, routed with GL scissor/viewport |
+| `overlayOpacity` blends overlay layouts | `overlayOpacity` defaults to **`1`** (opaque panes) |
+| TSL divider lines between cells | **No divider lines** — panes are separated physically |
+| Recomputes layout uniforms every frame | Normalized pane rects are built **once** when you create the renderer |
+
+Recreate the viewport renderer when `viewportPlan` or `viewportGraph` changes. Optional `overlayOpacity` and `dividerStyle` are forwarded to `updateDebugViewUniforms` for uniform parity; single-view passes do not draw compositor dividers or overlay blends.
+
+In development, mismatched render-graph cells (missing rect or pass runtime) log a one-time `console.warn` and are skipped instead of throwing.
+
+Use it when `requiresViewportRuntime(viewportPlan)` is true — typically when a pane sets `resolutionScale` below `1` or assigns a custom `camera`. Uniform layouts at full resolution can use `createDebugPipelineRuntime` instead.
+
+```ts
+import {
+  createDebugViewportPlan,
+  requiresViewportRuntime,
+} from "threejs-debug-view"
+
+const viewportPlan = createDebugViewportPlan({ /* ... */ })
+
+if (requiresViewportRuntime(viewportPlan)) {
+  // createDebugViewportRenderer path (above)
+} else {
+  // createDebugRenderPlan + createDebugPipelineRuntime path (single-view section)
+}
 ```
 
 ## Planning without rendering
@@ -99,6 +134,7 @@ These helpers stay React-free and are safe to use in build tools, tests, or cust
 | `createDebugRenderPlan` | Decide which passes and pipeline views a layout needs |
 | `createDebugViewportPlan` | Map pane assignments to viewport cells |
 | `createDebugViewportRenderGraphPlan` | Group cells into render passes |
+| `requiresViewportRuntime` | True when any pane uses a custom camera or sub-full `resolutionScale` |
 | `createDebugPipelineRuntimeKey` | Stable cache key when rebuilding pipelines |
 | `readHeatmapCostFromCanvas` | Sample shader-cost heatmap pixels from a canvas |
 
@@ -110,6 +146,6 @@ These helpers stay React-free and are safe to use in build tools, tests, or cust
 - drei `Html` overlays for labels and legends
 - Leva controls via `useDebugViewsControls` and `DebugViewLeva`
 
-It does **not** duplicate the WebGPU pipeline. `DebugViews` calls the same `createDebugPipelineRuntime` and `createDebugViewportRenderer` exports documented here.
+It does **not** duplicate the WebGPU pipeline. `DebugViews` calls the same `createDebugPipelineRuntime`, `createDebugViewportRenderer`, and `requiresViewportRuntime` exports documented here.
 
 See [API Reference](/threejs-debug-view/reference/api/) for prop-level detail on the R3F surface.
