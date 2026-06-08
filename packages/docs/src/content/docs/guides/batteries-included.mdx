@@ -78,14 +78,14 @@ Useful knobs:
 
 ## React-free core
 
-Import from `threejs-debug-view` when you need planning and TSL helpers without React:
+Import from `threejs-debug-view` when you need the canonical runtime without React:
 
-- `DEFAULT_DEBUG_VIEWS`
-- render-plan and layout utilities
-- TSL compositor helpers
-- shader-cost and overlap override builders
+- `DEFAULT_DEBUG_VIEWS` and render-plan utilities
+- `createDebugPipelineRuntime` / `createDebugViewportRenderer` for WebGPU render loops
+- TSL compositor helpers and shader-cost / overlap override builders
+- `DebugViewsOptions` and layout/pane control helpers
 
-This is the headless layer. It does not mount DOM labels, Leva, or a canvas overlay by itself.
+This is the headless layer. It does not mount DOM labels, Leva, or a canvas overlay by itself. See [Headless Runtime](/threejs-debug-view/guides/headless-runtime/) for a full example.
 
 ## What npm ships
 
@@ -117,7 +117,7 @@ It validates the product surface. It is not something consumers install from npm
 | --- | --- |
 | Fastest R3F integration | `DebugViewLayer` |
 | Custom app UI / partial overlay | `DebugViews` + `useDebugViewsControls` |
-| Non-React tooling or custom runtime | root `threejs-debug-view` exports |
+| Non-React tooling or custom runtime | root `threejs-debug-view` exports — see [Headless Runtime](/threejs-debug-view/guides/headless-runtime/) |
 | Try layouts and diagnostics interactively | [Live demo](/threejs-debug-view/demo/) |
 
-See [Quick Start](/threejs-debug-view/guides/quick-start/) for install steps, [API Reference](/threejs-debug-view/reference/api/) for prop-level detail, and [Changelog](/threejs-debug-view/reference/changelog/) for release history.
+See [Quick Start](/threejs-debug-view/guides/quick-start/) for install steps, [Headless Runtime](/threejs-debug-view/guides/headless-runtime/) for vanilla WebGPU integration, [API Reference](/threejs-debug-view/reference/api/) for prop-level detail, and [Changelog](/threejs-debug-view/reference/changelog/) for release history.

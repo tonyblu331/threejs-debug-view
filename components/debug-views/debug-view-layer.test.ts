@@ -21,6 +21,7 @@ describe("debug view layer batteries-included surface", () => {
     expect(source).toContain("mountDebugViewLeva()")
     expect(source).toContain("useDebugViewsControls")
     expect(source).toContain("<DebugViews")
+    expect(source).toContain("debug-views-r3f")
   })
 
   it("keeps showEnabledControl wired through controls", () => {

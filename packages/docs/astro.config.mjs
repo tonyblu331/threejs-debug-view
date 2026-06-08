@@ -28,7 +28,7 @@ export default defineConfig({
       sidebar: [
         {
           label: "Start Here",
-          items: ["index", "guides/quick-start", "guides/batteries-included", "guides/render-modes"],
+          items: ["index", "guides/quick-start", "guides/batteries-included", "guides/headless-runtime", "guides/render-modes"],
         },
         {
           label: "Debug Views",

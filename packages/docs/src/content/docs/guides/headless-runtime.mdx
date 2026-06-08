@@ -1,0 +1,115 @@
+---
+title: Headless Runtime
+description: Run debug views in vanilla Three.js WebGPU apps without React Three Fiber.
+---
+
+The root export `threejs-debug-view` is the canonical runtime. The `/r3f` entrypoint is a thin adapter that wires the same pipeline into React Three Fiber.
+
+Use the headless path when:
+
+- your app is not React-based
+- you already own the render loop and UI
+- you want full control over Leva, DOM overlays, or viewport layout
+
+Use [`/r3f`](/threejs-debug-view/guides/batteries-included/) when you want `DebugViewLayer` with bundled Leva controls inside a `<Canvas>`.
+
+## Minimal single-view loop
+
+```ts
+import {
+  DEFAULT_DEBUG_VIEWS,
+  createDebugRenderPlan,
+  createDebugPipelineRuntime,
+  createDebugViewUniforms,
+  resolveDebugViewLayout,
+  updateDebugViewUniforms,
+} from "threejs-debug-view"
+import { WebGPURenderer } from "three/webgpu"
+
+const views = DEFAULT_DEBUG_VIEWS
+const activeView = 0
+const layout = resolveDebugViewLayout("single")
+const plan = createDebugRenderPlan(views, activeView, layout)
+const uniforms = createDebugViewUniforms()
+
+const runtime = createDebugPipelineRuntime(
+  scene,
+  camera,
+  plan,
+  layout,
+  renderer as WebGPURenderer,
+  uniforms,
+)
+
+function animate() {
+  updateDebugViewUniforms(
+    uniforms,
+    plan.activePipelineView,
+    layout,
+    plan.pipelineViews.length,
+    1,
+  )
+  runtime.pipeline.render()
+  requestAnimationFrame(animate)
+}
+```
+
+## Multi-viewport rendering
+
+When panes use different resolution scales or cameras, use the viewport planner and headless viewport renderer:
+
+```ts
+import {
+  createDebugViewportPlan,
+  createDebugViewportRenderGraphPlan,
+  createDebugViewportRenderer,
+} from "threejs-debug-view"
+
+const viewportPlan = createDebugViewportPlan({
+  views: DEFAULT_DEBUG_VIEWS,
+  viewportViews: [
+    { view: "beauty" },
+    { view: "normal", resolutionScale: 0.5 },
+  ],
+  layout: "split-h",
+})
+
+const viewportGraph = createDebugViewportRenderGraphPlan(viewportPlan)
+
+const viewportRenderer = createDebugViewportRenderer({
+  gl: renderer,
+  scene,
+  defaultCamera: camera,
+  viewportPlan,
+  viewportGraph,
+  uniforms,
+})
+
+// In your loop:
+viewportRenderer.render()
+```
+
+## Planning without rendering
+
+These helpers stay React-free and are safe to use in build tools, tests, or custom engines:
+
+| Helper | Purpose |
+| --- | --- |
+| `resolveDebugViewLayout` | Normalize layout presets into rows, columns, and slots |
+| `createDebugRenderPlan` | Decide which passes and pipeline views a layout needs |
+| `createDebugViewportPlan` | Map pane assignments to viewport cells |
+| `createDebugViewportRenderGraphPlan` | Group cells into render passes |
+| `createDebugPipelineRuntimeKey` | Stable cache key when rebuilding pipelines |
+| `readHeatmapCostFromCanvas` | Sample shader-cost heatmap pixels from a canvas |
+
+## R3F adapter boundary
+
+`threejs-debug-view/r3f` adds:
+
+- `useFrame` / `useThree` wiring
+- drei `Html` overlays for labels and legends
+- Leva controls via `useDebugViewsControls` and `DebugViewLeva`
+
+It does **not** duplicate the WebGPU pipeline. `DebugViews` calls the same `createDebugPipelineRuntime` and `createDebugViewportRenderer` exports documented here.
+
+See [API Reference](/threejs-debug-view/reference/api/) for prop-level detail on the R3F surface.

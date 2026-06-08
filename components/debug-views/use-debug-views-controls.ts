@@ -1,24 +1,16 @@
 import { useEffect, useMemo } from "react"
 import { useControls } from "leva"
 import { getDebugViewLabels } from "./debug-view-definitions"
-import type { DebugViewsProps } from "./debug-views-post"
-import type { DebugViewportView } from "./debug-viewport-plan"
+import {
+  createPaneAssignmentsKey,
+  createViewportViews,
+  getVisiblePaneCount,
+  isPaneAssignmentLayout,
+  usesPaneAssignments,
+} from "./debug-views-controls"
+import type { DebugViewsControlValues } from "./debug-views-options"
 
-export type DebugViewsControlValues = Required<
-  Pick<
-    DebugViewsProps,
-    | "activeView"
-    | "columns"
-    | "diagonalAngle"
-    | "enabled"
-    | "layout"
-    | "overlayOpacity"
-    | "paneCount"
-    | "rows"
-    | "showLabels"
-    | "viewportViews"
-  >
->
+export type { DebugViewsControlValues } from "./debug-views-options"
 
 interface UseDebugViewsControlsOptions {
   viewLabels?: string[]
@@ -27,7 +19,9 @@ interface UseDebugViewsControlsOptions {
   showEnabledControl?: boolean
 }
 
-export function useDebugViewsControls(options: UseDebugViewsControlsOptions = {}) {
+export function useDebugViewsControls(
+  options: UseDebugViewsControlsOptions = {},
+): DebugViewsControlValues {
   const {
     viewLabels = getDebugViewLabels(),
     initialActiveView = 0,
@@ -147,65 +141,5 @@ export function useDebugViewsControls(options: UseDebugViewsControlsOptions = {}
     ...(controls as DebugViewsControlValues),
     enabled: showEnabledControl ? Boolean(controlValues.enabled) : true,
     viewportViews,
-  }
-}
-
-function createViewportViews(
-  controlValues: Record<string, unknown>,
-  paneControlCount: number,
-): DebugViewportView[] {
-  const viewportViews: DebugViewportView[] = []
-
-  for (let index = 0; index < paneControlCount; index++) {
-    const value = controlValues[`pane${index + 1}`]
-    viewportViews.push({ view: typeof value === "number" ? value : index })
-  }
-
-  return viewportViews
-}
-
-function createPaneAssignmentsKey(
-  controlValues: Record<string, unknown>,
-  paneControlCount: number,
-) {
-  const assignments: string[] = []
-
-  for (let index = 0; index < paneControlCount; index++) {
-    assignments.push(String(controlValues[`pane${index + 1}`]))
-  }
-
-  return assignments.join("|")
-}
-
-function usesPaneAssignments(get: (path: string) => unknown) {
-  return isPaneAssignmentLayout(get("Debug.layout"))
-}
-
-function isPaneAssignmentLayout(layout: unknown) {
-  return ["split-h", "split-v", "split-diagonal", "breakdown", "quad", "row", "column", "grid"].includes(String(layout))
-}
-
-function getVisiblePaneCount(get: (path: string) => unknown) {
-  const layout = String(get("Debug.layout"))
-
-  switch (layout) {
-    case "single":
-      return 1
-    case "overlay":
-    case "split-h":
-    case "split-v":
-    case "split-diagonal":
-      return 2
-    case "breakdown":
-    case "quad":
-      return 4
-    case "row":
-    case "column":
-    case "grid": {
-      const paneCount = Number(get("Debug.paneCount"))
-      return Number.isFinite(paneCount) ? Math.max(1, Math.floor(paneCount)) : 4
-    }
-    default:
-      return 1
   }
 }

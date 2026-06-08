@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.9] - 2026-06-08
+
+### Added
+- Headless WebGPU runtime on the root package: `createDebugPipelineRuntime`, `createDebugViewportRenderer`, `createDebugPipelineRuntimeKey`, and `readHeatmapCostFromCanvas`.
+- `DebugViewsOptions`, `DebugViewsControlValues`, and layout/pane helpers exported from the React-free entrypoint.
+- Starlight [Headless Runtime](https://tonyblu331.github.io/threejs-debug-view/guides/headless-runtime/) guide and unit tests for control helpers and pipeline runtime keys.
+
+### Changed
+- `/r3f` is now a thin adapter over the canonical core: pipeline runtime lives in `debug-pipeline-runtime.ts`; R3F wiring is split into `debug-views-r3f.tsx` and `debug-views-overlays.tsx`.
+- `useDebugViewsControls` imports types from core instead of the R3F module.
+- Removed the monolithic `debug-views-post.tsx` implementation file. The public R3F API is unchanged for `DebugViewLayer` consumers.
+
 ## [0.2.8] - 2026-06-08
 
 ### Added

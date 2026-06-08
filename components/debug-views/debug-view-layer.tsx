@@ -3,12 +3,10 @@ import {
   DEFAULT_DEBUG_VIEWS,
   getDebugViewLabels,
 } from "./debug-view-definitions"
-import { DebugViews, type DebugViewsProps } from "./debug-views-post"
+import { DebugViews } from "./debug-views-r3f"
+import type { DebugViewsOptions } from "./debug-views-options"
 import { mountDebugViewLeva } from "./debug-view-leva"
-import {
-  useDebugViewsControls,
-  type DebugViewsControlValues,
-} from "./use-debug-views-controls"
+import { useDebugViewsControls } from "./use-debug-views-controls"
 import type { DebugView } from "./debug-views-tsl/compositor"
 
 type DebugViewLayerControlledProps =
@@ -26,7 +24,7 @@ type DebugViewLayerControlledProps =
   | "views"
 
 export interface DebugViewLayerProps
-  extends Omit<DebugViewsProps, DebugViewLayerControlledProps> {
+  extends Omit<DebugViewsOptions, DebugViewLayerControlledProps> {
   views?: readonly DebugView[]
   viewLabels?: string[]
   initialActiveView?: number
@@ -52,7 +50,7 @@ export function DebugViewLayer({
     viewLabels,
     maxPaneCount: maxPaneCount ?? maxLayoutSlots,
     showEnabledControl,
-  }) as DebugViewsControlValues
+  })
 
   useEffect(() => {
     if (!showLeva) return

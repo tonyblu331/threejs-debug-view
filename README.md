@@ -13,7 +13,7 @@
 
 [![npm version](https://img.shields.io/npm/v/threejs-debug-view.svg)](https://www.npmjs.com/package/threejs-debug-view)
 [![license](https://img.shields.io/npm/l/threejs-debug-view.svg)](./LICENSE)
-[![library gzip](https://img.shields.io/badge/library_gzip-22_kB-007ec6)](https://github.com/tonyblu331/threejs-debug-view#bundle-size)
+[![library gzip](https://img.shields.io/badge/library_gzip-23_kB-007ec6)](https://github.com/tonyblu331/threejs-debug-view#bundle-size)
 
 Small debug views for Three.js WebGPU + TSL render pipelines.
 
@@ -36,7 +36,7 @@ That mounts the overlay, wires Leva controls on `document.body` (outside the R3F
 | --- | --- | --- |
 | Batteries included | `threejs-debug-view/r3f` → `DebugViewLayer` | You want the default overlay with minimal setup. |
 | Controlled overlay | `threejs-debug-view/r3f` → `DebugViews` + `useDebugViewsControls` | Your app owns UI state or only needs part of the surface. |
-| Headless core | `threejs-debug-view` | You need render planning, TSL helpers, and types without React. |
+| Headless core | `threejs-debug-view` | You need render planning, TSL helpers, and the WebGPU pipeline runtime without React. See the [headless runtime guide](https://tonyblu331.github.io/threejs-debug-view/guides/headless-runtime/). |
 
 The hosted demo and Starlight docs explain layouts, overlap, and shader-cost sampling. They are not published to npm. See the [docs](https://tonyblu331.github.io/threejs-debug-view/guides/batteries-included/) for the full package split.
 
@@ -135,7 +135,7 @@ The compose runtime also tracks custom node identity so replacing the node insta
 ## Project Shape
 
 - `components/debug-views/` is the package source.
-- `threejs-debug-view` exports debug view definitions, planning utilities, TSL helpers, and public types.
+- `threejs-debug-view` exports debug view definitions, render planning, TSL helpers, headless WebGPU runtime (`createDebugPipelineRuntime`, `createDebugViewportRenderer`), and public types.
 - `threejs-debug-view/r3f` exports the batteries-included `DebugViewLayer`, the lower-level `DebugViews` component, and Leva controls.
 - `src/` is the local demo app only; it is not published to npm.
 - `packages/docs/` is the Astro documentation site and hosted demo build output; it is not published to npm.
@@ -158,4 +158,4 @@ The e2e suite keeps CI strict: if Chromium cannot start the WebGPU demo in CI, t
 
 ## Bundle size
 
-The npm badge reports the gzipped size of the published ESM files in `dist/` (~22 kB). Peer dependencies such as `three`, `react`, `react-dom`, and `@react-three/fiber` are excluded. Bundlephobia does not reliably analyze this package because of WebGPU/TSL peer imports, so the badge is measured locally via `pnpm pack:check`.
+The npm badge reports the gzipped size of the published ESM files in `dist/` (~23 kB). Peer dependencies such as `three`, `react`, `react-dom`, and `@react-three/fiber` are excluded. Bundlephobia does not reliably analyze this package because of WebGPU/TSL peer imports, so the badge is measured locally via `pnpm pack:check`.

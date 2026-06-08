@@ -37,7 +37,7 @@ Bundled Leva panel for the debug overlay controls. Import it from `threejs-debug
 R3F component for presenting debug views inside a React Three Fiber `<Canvas>`.
 Import it from `threejs-debug-view/r3f`.
 
-The root package export stays React-free. Use it for core helpers, built-in view definitions, render planning, and public types.
+The root package export stays React-free. Use it for core helpers, built-in view definitions, render planning, headless WebGPU runtime, and public types. See [Headless Runtime](/threejs-debug-view/guides/headless-runtime/).
 
 Important props:
 
@@ -128,8 +128,8 @@ The package has two public entrypoints:
 
 | Entrypoint | Use it for |
 | --- | --- |
-| `threejs-debug-view` | Core helpers, built-in views, TSL compositor helpers, planning utilities, and public types. |
-| `threejs-debug-view/r3f` | Batteries-included R3F layer (`DebugViewLayer`), controlled overlay (`DebugViews`), bundled Leva shell (`DebugViewLeva`, `mountDebugViewLeva`), and `useDebugViewsControls()` for custom UI. |
+| `threejs-debug-view` | Canonical runtime: planning, TSL compositor, `createDebugRenderPlan`, `createDebugPipelineRuntime`, `createDebugViewportRenderer`, layout/pane helpers, and `DebugViewsOptions` types. |
+| `threejs-debug-view/r3f` | Thin adapter: `DebugViewLayer`, `DebugViews`, bundled Leva shell (`DebugViewLeva`, `mountDebugViewLeva`), and `useDebugViewsControls()`. |
 
 See [Batteries Included](/threejs-debug-view/guides/batteries-included/) for what ships on npm versus what stays in the repo demo and docs site.
 
@@ -139,9 +139,26 @@ The repository demo and docs are separate from the package source:
 - `src/` contains the Vite demo app.
 - `packages/docs/` contains the Astro documentation site.
 
+## Headless runtime (root export)
+
+Import from `threejs-debug-view` when your app owns the WebGPU render loop:
+
+- `createDebugRenderPlan()` — pass and pipeline view selection for a layout
+- `createDebugPipelineRuntime()` — single-viewport `RenderPipeline` lifecycle
+- `createDebugViewportRenderer()` — multi-pane scissor/viewport rendering
+- `createDebugPipelineRuntimeKey()` — stable rebuild key for runtime caches
+- `createDebugViewUniforms()` / `updateDebugViewUniforms()` — TSL uniform state
+- `readHeatmapCostFromCanvas()` — shader-cost pixel sampling
+- `DebugViewsOptions` / layout pane helpers from `debug-views-controls`
+
+See [Headless Runtime](/threejs-debug-view/guides/headless-runtime/) for a full example.
+
 ## Helpers
 
 - `createCustomDebugView()`
+- `createDebugRenderPlan()`
+- `createDebugPipelineRuntime()`
+- `createDebugViewportRenderer()`
 - `createDebugViewportPlan()`
 - `createDebugViewportRenderGraphPlan()`
 - `createDebugViewportLabels()`

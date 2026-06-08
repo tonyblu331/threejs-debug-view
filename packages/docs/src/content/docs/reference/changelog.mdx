@@ -7,6 +7,16 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 
 [View the full changelog on GitHub](https://github.com/tonyblu331/threejs-debug-view/blob/master/CHANGELOG.md)
 
+## [0.2.9] — 2026-06-08
+
+### Added
+- Headless WebGPU runtime: `createDebugPipelineRuntime`, `createDebugViewportRenderer`, `createDebugPipelineRuntimeKey`, and `readHeatmapCostFromCanvas`.
+- `DebugViewsOptions`, layout/pane helpers, and [Headless Runtime](/threejs-debug-view/guides/headless-runtime/) guide.
+
+### Changed
+- `/r3f` is a thin adapter over the canonical core runtime (`debug-pipeline-runtime.ts`, `debug-views-r3f.tsx`, `debug-views-overlays.tsx`).
+- Removed internal `debug-views-post.tsx`; public R3F API unchanged.
+
 ## [0.2.8] — 2026-06-08
 
 ### Added

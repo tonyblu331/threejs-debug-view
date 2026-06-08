@@ -78,3 +78,44 @@ export type {
   Vec3Node,
   Vec4Node,
 } from "./debug-views-tsl/node-types"
+
+export {
+  applyDebugTextureTypes,
+  createDebugRenderPlan,
+  type DebugRenderPlan,
+  type DebugTextureTypeOverride,
+  type TextureTypedDebugPass,
+} from "./debug-render-plan"
+
+export {
+  getDefaultDebugViewSource,
+  getResolvedDebugViewMode,
+  selectPipelineViews,
+} from "./debug-view-selection"
+
+export {
+  createDebugPipelineRuntime,
+  createDebugPipelineRuntimeKey,
+  createDebugViewportRenderer,
+  requiresViewportRuntime,
+  SINGLE_VIEW_LAYOUT,
+  type CreateDebugViewportRendererOptions,
+  type DebugPipelineRuntime,
+  type DebugViewportRenderer,
+} from "./debug-pipeline-runtime"
+
+export {
+  createPaneAssignmentsKey,
+  createViewportViews,
+  getVisiblePaneCount,
+  getVisiblePaneCountForLayout,
+  isPaneAssignmentLayout,
+  usesPaneAssignments,
+} from "./debug-views-controls"
+
+export {
+  type DebugViewsControlValues,
+  type DebugViewsOptions,
+} from "./debug-views-options"
+
+export { readHeatmapCostFromCanvas } from "./debug-views-tsl/heatmap-decode"

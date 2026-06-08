@@ -5,7 +5,7 @@ export {
   mountDebugViewLeva,
   type DebugViewLevaProps,
 } from "./debug-view-leva"
-export { DebugViews, type DebugViewsProps } from "./debug-views-post"
+export { DebugViews, type DebugViewsProps } from "./debug-views-r3f"
 export {
   useDebugViewsControls,
   type DebugViewsControlValues,
