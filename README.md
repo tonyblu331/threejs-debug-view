@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/threejs-debug-view.svg)](https://www.npmjs.com/package/threejs-debug-view)
 [![license](https://img.shields.io/npm/l/threejs-debug-view.svg)](./LICENSE)
-[![bundle size](https://img.shields.io/bundlephobia/minzip/threejs-debug-view.svg)](https://bundlephobia.com/package/threejs-debug-view)
+[![library gzip](https://img.shields.io/badge/library_gzip-21_kB-007ec6)](https://github.com/tonyblu331/threejs-debug-view#bundle-size)
 
 Small debug views for Three.js WebGPU + TSL render pipelines.
 
@@ -123,3 +123,7 @@ pnpm dev
 ```
 
 The e2e suite keeps CI strict: if Chromium cannot start the WebGPU demo in CI, the test fails instead of silently accepting the fallback gate.
+
+## Bundle size
+
+The npm badge reports the gzipped size of the published ESM files in `dist/` (~21 kB). Peer dependencies such as `three`, `react`, and `@react-three/fiber` are excluded. Bundlephobia does not reliably analyze this package because of WebGPU/TSL peer imports, so the badge is measured locally via `pnpm pack:check`.

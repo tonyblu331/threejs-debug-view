@@ -1,6 +1,7 @@
 import { execSync } from "node:child_process"
 import { readdirSync, statSync } from "node:fs"
 import { join } from "node:path"
+import { assertReadmeBundleBadge } from "./measure-bundle-size.mjs"
 
 const root = process.cwd()
 const allowedEntries = new Set([
@@ -71,3 +72,6 @@ if (violations.length > 0) {
 }
 
 console.log(`Pack surface OK (${entries.length} entries in ${tarballPath.split(/[/\\]/).at(-1)})`)
+
+const measurement = assertReadmeBundleBadge(join(root, "README.md"))
+console.log(`Bundle badge OK (${measurement.badgeLabel} published ESM gzip)`)
