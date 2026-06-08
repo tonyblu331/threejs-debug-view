@@ -60,9 +60,9 @@ Roughness, metallic, AO, opacity, and emissive use shader-side defaults when a m
 
 ## Presentation Routing
 
-`DebugViews` routes presentation from the props you provide. Without explicit pane assignments, it uses the fullscreen TSL compositor for selected-view and composed layouts. When you provide `viewportViews`, it uses viewport/scissor panes with labels, per-pane cameras, and per-pane resolution scale.
+`DebugViews` routes presentation from the props you provide. Simple layouts and pane assignments use the fullscreen TSL compositor. When a pane needs a custom camera or `resolutionScale`, it uses viewport/scissor presentation.
 
-`layout` and `paneCount` define the pane geometry. `viewportViews` assigns content to those panes and automatically selects the viewport renderer path.
+`layout` and `paneCount` define the pane geometry. `viewportViews` assigns content to those panes. Use `split-diagonal` with `diagonalAngle` for a two-pane slanted split; the bundled controls clamp it to `45` degrees by default.
 
 ```tsx
 <DebugViews
@@ -97,7 +97,7 @@ const fresnelView = createCustomDebugView({
 <DebugViews views={[...DEFAULT_DEBUG_VIEWS, fresnelView]} />
 ```
 
-Use a stable `id` when a custom node can be recreated between React renders. The viewport render graph uses that id to dedupe equivalent custom views.
+Use a stable `id` when a custom node can be recreated between React renders. The viewport render graph uses that id in stable pass keys.
 The compose runtime also tracks custom node identity so replacing the node instance rebuilds the pipeline instead of keeping stale shader code.
 
 ## Project Shape

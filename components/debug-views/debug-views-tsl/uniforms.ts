@@ -14,6 +14,7 @@ export function createDebugViewUniforms() {
     viewCount: uniform(3),
     gridColumns: uniform(2),
     gridRows: uniform(2),
+    diagonalSlope: uniform(0),
     overlayOpacity: uniform(0.35),
   }
 }
@@ -35,5 +36,6 @@ export function updateDebugViewUniforms(
   uniforms.viewCount.value = safeViewCount
   uniforms.gridColumns.value = resolvedLayout.columns
   uniforms.gridRows.value = resolvedLayout.rows
+  uniforms.diagonalSlope.value = Math.tan(resolvedLayout.diagonalAngle * Math.PI / 180)
   uniforms.overlayOpacity.value = Math.max(0, Math.min(overlayOpacity, 1))
 }

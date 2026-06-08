@@ -98,6 +98,8 @@ function selectLayout(
       return selectSingle(views, uniforms.activeView)
     case "overlay":
       return blendOverlay(views, uniforms.overlayOpacity)
+    case "diagonal":
+      return selectByDiagonal(views, uniforms.diagonalSlope)
     case "grid":
       return selectByGrid(views, uniforms.viewCount, resolvedLayout.columns, resolvedLayout.rows)
   }
@@ -119,6 +121,21 @@ function blendOverlay(views: Vec4Node[], opacity: DebugViewUniforms["overlayOpac
     result = mix(result, views[i], opacity)
   }
   return result
+}
+
+function selectByDiagonal(
+  views: Vec4Node[],
+  slope: DebugViewUniforms["diagonalSlope"],
+): Vec4Node {
+  if (views.length === 1) return views[0]
+
+  const uv = screenUV
+  const boundary = uv.x.sub(float(0.5)).add(uv.y.sub(float(0.5)).mul(slope))
+  const divider = boundary.abs().lessThan(float(0.003))
+  const split = boundary.greaterThanEqual(float(0))
+  const result = split.select(views[1], views[0])
+
+  return divider.select(vec4(0.12, 0.12, 0.12, 1), result)
 }
 
 function selectByGrid(

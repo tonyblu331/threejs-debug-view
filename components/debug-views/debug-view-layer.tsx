@@ -12,6 +12,7 @@ import type { DebugView } from "./debug-views-tsl/compositor"
 type DebugViewLayerControlledProps =
   | "activeView"
   | "columns"
+  | "diagonalAngle"
   | "enabled"
   | "layout"
   | "overlayOpacity"

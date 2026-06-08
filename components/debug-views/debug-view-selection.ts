@@ -42,6 +42,8 @@ export function selectPipelineViews(
       return [active]
     case "overlay":
       return selectOverlayViews(views, active)
+    case "diagonal":
+      return views.slice(0, Math.min(2, resolvedLayout.slots))
     case "grid":
       return views.slice(0, resolvedLayout.slots)
   }

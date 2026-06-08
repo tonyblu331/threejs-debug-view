@@ -7,10 +7,11 @@ describe("debug view uniforms", () => {
     ["overlay", 1],
     ["split-h", 2],
     ["split-v", 3],
-    ["quad", 4],
-    ["row", 5],
-    ["column", 6],
-    ["grid", 7],
+    ["split-diagonal", 4],
+    ["quad", 5],
+    ["row", 6],
+    ["column", 7],
+    ["grid", 8],
   ] as const)("maps %s layout to shader index %i", (layout, expected) => {
     const uniforms = createDebugViewUniforms()
 
@@ -53,5 +54,13 @@ describe("debug view uniforms", () => {
 
     expect(uniforms.gridColumns.value).toBe(3)
     expect(uniforms.gridRows.value).toBe(2)
+  })
+
+  it("updates diagonal split slope from the resolved angle", () => {
+    const uniforms = createDebugViewUniforms()
+
+    updateDebugViewUniforms(uniforms, 0, { mode: "split-diagonal", diagonalAngle: 45 }, 2, 0.35)
+
+    expect(uniforms.diagonalSlope.value).toBeCloseTo(1)
   })
 })

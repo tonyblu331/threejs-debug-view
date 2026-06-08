@@ -94,7 +94,26 @@ describe("debug view layout", () => {
   it("keeps legacy presets as resolved topologies", () => {
     expect(resolveDebugViewLayout("split-h")).toMatchObject({ columns: 2, rows: 1, slots: 2 })
     expect(resolveDebugViewLayout("split-v")).toMatchObject({ columns: 1, rows: 2, slots: 2 })
+    expect(resolveDebugViewLayout("split-diagonal")).toMatchObject({
+      presentation: "diagonal",
+      columns: 2,
+      rows: 1,
+      slots: 2,
+      diagonalAngle: 24,
+    })
     expect(resolveDebugViewLayout("quad")).toMatchObject({ columns: 2, rows: 2, slots: 4 })
+  })
+
+  it("clamps diagonal split angle to a safe default max unless overridden", () => {
+    expect(resolveDebugViewLayout("split-diagonal", { diagonalAngle: 80 })).toMatchObject({
+      diagonalAngle: 45,
+    })
+
+    expect(
+      resolveDebugViewLayout("split-diagonal", { diagonalAngle: 80, maxDiagonalAngle: 60 }),
+    ).toMatchObject({
+      diagonalAngle: 60,
+    })
   })
 
   it("clamps slots to the resolved topology cell count", () => {
@@ -117,5 +136,13 @@ describe("debug view layout", () => {
         (view) => view.source,
       ),
     ).toEqual(["beauty", "normal", "depth", "albedo"])
+  })
+
+  it("selects two views for diagonal split layouts", () => {
+    expect(
+      selectPipelineViews(DEFAULT_DEBUG_VIEWS, 0, "split-diagonal").map(
+        (view) => view.source,
+      ),
+    ).toEqual(["beauty", "normal"])
   })
 })

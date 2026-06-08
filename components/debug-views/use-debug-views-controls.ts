@@ -9,6 +9,7 @@ export type DebugViewsControlValues = Required<
     DebugViewsProps,
     | "activeView"
     | "columns"
+    | "diagonalAngle"
     | "enabled"
     | "layout"
     | "overlayOpacity"
@@ -68,6 +69,7 @@ export function useDebugViewsControls(options: UseDebugViewsControlsOptions = {}
           Overlay: "overlay",
           "Split H": "split-h",
           "Split V": "split-v",
+          "Split Diagonal": "split-diagonal",
           Quad: "quad",
           Row: "row",
           Column: "column",
@@ -97,6 +99,14 @@ export function useDebugViewsControls(options: UseDebugViewsControlsOptions = {}
         max: paneLimit,
         step: 1,
         render: (get: (path: string) => unknown) => get("Debug.layout") === "grid",
+      },
+      diagonalAngle: {
+        label: "Diagonal angle",
+        value: 24,
+        min: -45,
+        max: 45,
+        step: 1,
+        render: (get: (path: string) => unknown) => get("Debug.layout") === "split-diagonal",
       },
       overlayOpacity: {
         label: "Blend opacity",
@@ -161,7 +171,7 @@ function usesPaneAssignments(get: (path: string) => unknown) {
 }
 
 function isPaneAssignmentLayout(layout: unknown) {
-  return ["split-h", "split-v", "quad", "row", "column", "grid"].includes(String(layout))
+  return ["split-h", "split-v", "split-diagonal", "quad", "row", "column", "grid"].includes(String(layout))
 }
 
 function getVisiblePaneCount(get: (path: string) => unknown) {
@@ -173,6 +183,7 @@ function getVisiblePaneCount(get: (path: string) => unknown) {
     case "overlay":
     case "split-h":
     case "split-v":
+    case "split-diagonal":
       return 2
     case "quad":
       return 4

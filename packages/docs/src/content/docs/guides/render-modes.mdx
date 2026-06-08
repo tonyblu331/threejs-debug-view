@@ -18,6 +18,7 @@ Supported layouts:
 - `overlay`
 - `split-h`
 - `split-v`
+- `split-diagonal`
 - `quad`
 - `row`
 - `column`
@@ -27,12 +28,14 @@ Supported layouts:
 <DebugViews views={views} layout="row" paneCount={4} />
 ```
 
+Use `split-diagonal` for a two-pane split with a slanted divider. Its `diagonalAngle` defaults to a restrained value and is clamped to `45` degrees unless you provide `maxDiagonalAngle`.
+
 ## Explicit panes
 
-When you provide `viewportViews`, `DebugViews` assigns views directly to renderer viewport/scissor panes.
-Use explicit panes when callers need stable pane assignment, labels, per-pane cameras, or resolution policy.
+When you provide `viewportViews`, `DebugViews` assigns views directly to panes.
+Simple pane assignments still use the composed TSL path. It switches to renderer viewport/scissor panes only when a pane needs a custom camera or `resolutionScale`.
 
-`layout` and `paneCount` define the pane geometry. `viewportViews` assigns content to those panes and automatically selects the viewport renderer path.
+`layout` and `paneCount` define the pane geometry. `viewportViews` assigns content to those panes.
 
 ```tsx
 <DebugViews

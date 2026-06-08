@@ -101,6 +101,24 @@ test.describe("debug demo controls", () => {
     await expect(page.getByRole("combobox", { name: "Pane 1" })).toBeVisible()
     expect(messages).toEqual([])
   })
+
+  test("exposes diagonal split controls without falling back to mode switching", async ({ page }) => {
+    const messages = collectRelevantConsoleMessages(page)
+
+    await page.goto("/?scene=overdraw&debugView=overdraw")
+    await waitForDemoOrSkip(page)
+
+    await page.getByRole("combobox", { name: "Layout" }).selectOption({ label: "Split Diagonal" })
+
+    await expect(page.getByRole("combobox", { name: "Mode" })).toHaveCount(0)
+    await expect(page.getByRole("combobox", { name: "View" })).toHaveCount(0)
+    await expect(page.getByRole("combobox", { name: "Pane 1" })).toBeVisible()
+    await expect(page.getByRole("combobox", { name: "Pane 2" })).toBeVisible()
+    await expect(page.getByText("Diagonal angle", { exact: true })).toBeVisible()
+    await expect(page.getByText("Rows", { exact: true })).toHaveCount(0)
+    await expect(page.getByText("Columns", { exact: true })).toHaveCount(0)
+    expect(messages).toEqual([])
+  })
 })
 
 function collectRelevantConsoleMessages(page: Page) {

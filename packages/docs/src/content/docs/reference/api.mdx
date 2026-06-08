@@ -37,12 +37,14 @@ Important props:
 | `activeView` | Selected view for single/overlay flows. |
 | `layout` | Layout preset or layout config. |
 | `paneCount` | Number of visible panes for row, column, and grid layouts. |
+| `diagonalAngle` | Angle in degrees for `split-diagonal`. Defaults to a restrained slant. |
+| `maxDiagonalAngle` | Optional override for the default `45` degree diagonal angle clamp. |
 | `viewportViews` | Explicit pane assignments for fixed views, labels, cameras, or resolution scale. |
 | `showLabels` | Renders DOM labels over panes. |
 | `viewportLabels` | Label overrides or formatter. |
 | `overlayOpacity` | Blend amount for overlay mode. |
 
-Use this mental model when configuring panes: `layout` decides the arrangement, `paneCount` decides how many panes are visible, and `viewportViews` decides what each explicit viewport pane renders. Providing `viewportViews` automatically uses the viewport/scissor renderer path.
+Use this mental model when configuring panes: `layout` decides the arrangement, `paneCount` decides how many panes are visible, and `viewportViews` decides what each explicit pane renders. Simple pane assignments use the composed path; per-pane cameras and `resolutionScale` use the viewport/scissor path.
 
 ## `DebugView`
 
@@ -108,7 +110,7 @@ const fresnel = createCustomDebugView({
 })
 ```
 
-The compose runtime rebuilds when a custom node instance changes. The viewport render graph uses `id` to dedupe equivalent custom views.
+The compose runtime rebuilds when a custom node instance changes. The viewport render graph uses `id` in stable pass keys.
 
 ## Package Shape
 

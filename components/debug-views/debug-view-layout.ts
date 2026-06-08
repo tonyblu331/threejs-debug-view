@@ -3,6 +3,7 @@ export type LayoutMode =
   | "overlay"
   | "split-h"
   | "split-v"
+  | "split-diagonal"
   | "quad"
   | "row"
   | "column"
@@ -13,6 +14,8 @@ export interface DebugViewLayoutOptions {
   slots?: number
   columns?: number
   rows?: number
+  diagonalAngle?: number
+  maxDiagonalAngle?: number
 }
 
 export interface DebugViewLayoutConfig extends DebugViewLayoutOptions {
@@ -21,7 +24,7 @@ export interface DebugViewLayoutConfig extends DebugViewLayoutOptions {
 
 export type DebugViewLayout = LayoutMode | DebugViewLayoutConfig
 
-export type LayoutPresentation = "single" | "overlay" | "grid"
+export type LayoutPresentation = "single" | "overlay" | "grid" | "diagonal"
 
 export interface ResolvedDebugViewLayout {
   mode: LayoutMode
@@ -29,6 +32,7 @@ export interface ResolvedDebugViewLayout {
   columns: number
   rows: number
   slots: number
+  diagonalAngle: number
 }
 
 export const LAYOUT_INDEX: Record<LayoutMode, number> = {
@@ -36,13 +40,17 @@ export const LAYOUT_INDEX: Record<LayoutMode, number> = {
   overlay: 1,
   "split-h": 2,
   "split-v": 3,
-  quad: 4,
-  row: 5,
-  column: 6,
-  grid: 7,
+  "split-diagonal": 4,
+  quad: 5,
+  row: 6,
+  column: 7,
+  grid: 8,
 }
 
 const DEFAULT_LINEAR_SLOTS = 4
+const DEFAULT_DIAGONAL_ANGLE = 24
+const DEFAULT_MAX_DIAGONAL_ANGLE = 45
+const HARD_MAX_DIAGONAL_ANGLE = 85
 
 export function resolveDebugViewLayout(
   layout: DebugViewLayout = "single",
@@ -59,6 +67,15 @@ export function resolveDebugViewLayout(
       return createResolvedLayout(config.mode, "grid", 2, 1)
     case "split-v":
       return createResolvedLayout(config.mode, "grid", 1, 2)
+    case "split-diagonal":
+      return createResolvedLayout(
+        config.mode,
+        "diagonal",
+        2,
+        1,
+        2,
+        normalizeDiagonalAngle(config.diagonalAngle, config.maxDiagonalAngle),
+      )
     case "quad":
       return createResolvedLayout(config.mode, "grid", 2, 2)
     case "row": {
@@ -103,6 +120,8 @@ function getDefinedLayoutOptions(options: DebugViewLayoutOptions): DebugViewLayo
   if (options.slots !== undefined) definedOptions.slots = options.slots
   if (options.columns !== undefined) definedOptions.columns = options.columns
   if (options.rows !== undefined) definedOptions.rows = options.rows
+  if (options.diagonalAngle !== undefined) definedOptions.diagonalAngle = options.diagonalAngle
+  if (options.maxDiagonalAngle !== undefined) definedOptions.maxDiagonalAngle = options.maxDiagonalAngle
 
   return definedOptions
 }
@@ -117,6 +136,7 @@ function createResolvedLayout(
   columns: number,
   rows: number,
   slots = columns * rows,
+  diagonalAngle = 0,
 ): ResolvedDebugViewLayout {
   const cellCount = columns * rows
 
@@ -126,6 +146,7 @@ function createResolvedLayout(
     columns,
     rows,
     slots: Math.min(positiveInteger(slots, cellCount), cellCount),
+    diagonalAngle,
   }
 }
 
@@ -135,4 +156,21 @@ function positiveInteger(value: number | undefined, fallback: number): number {
   }
 
   return Math.max(1, Math.floor(value))
+}
+
+function normalizeDiagonalAngle(
+  angle = DEFAULT_DIAGONAL_ANGLE,
+  maxAngle = DEFAULT_MAX_DIAGONAL_ANGLE,
+) {
+  const safeMax = Math.min(
+    HARD_MAX_DIAGONAL_ANGLE,
+    Math.max(0, Math.abs(finiteNumber(maxAngle, DEFAULT_MAX_DIAGONAL_ANGLE))),
+  )
+  const safeAngle = finiteNumber(angle, DEFAULT_DIAGONAL_ANGLE)
+
+  return Math.max(-safeMax, Math.min(safeAngle, safeMax))
+}
+
+function finiteNumber(value: number, fallback: number) {
+  return Number.isFinite(value) ? value : fallback
 }

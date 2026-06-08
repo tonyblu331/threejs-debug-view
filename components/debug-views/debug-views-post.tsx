@@ -59,6 +59,8 @@ export interface DebugViewsProps {
   paneCount?: number
   columns?: number
   rows?: number
+  diagonalAngle?: number
+  maxDiagonalAngle?: number
   showLabels?: boolean
   viewportLabels?: DebugViewportLabels
   overlayOpacity?: number
@@ -74,6 +76,8 @@ export function DebugViews({
   paneCount,
   columns,
   rows,
+  diagonalAngle,
+  maxDiagonalAngle,
   showLabels = false,
   viewportLabels,
   overlayOpacity = 0.35,
@@ -81,8 +85,8 @@ export function DebugViews({
   enabled = true,
 }: DebugViewsProps) {
   const layoutOptions = useMemo(
-    (): DebugViewLayoutOptions => ({ paneCount, columns, rows }),
-    [paneCount, columns, rows],
+    (): DebugViewLayoutOptions => ({ paneCount, columns, rows, diagonalAngle, maxDiagonalAngle }),
+    [paneCount, columns, rows, diagonalAngle, maxDiagonalAngle],
   )
 
   if (!enabled) {
@@ -715,6 +719,7 @@ const SINGLE_VIEW_LAYOUT: ResolvedDebugViewLayout = {
   columns: 1,
   rows: 1,
   slots: 1,
+  diagonalAngle: 0,
 }
 
 function createDebugPipelineRuntime(
