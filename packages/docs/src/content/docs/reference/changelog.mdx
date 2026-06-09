@@ -7,6 +7,21 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 
 [View the full changelog on GitHub](https://github.com/tonyblu331/threejs-debug-view/blob/master/CHANGELOG.md)
 
+## [0.2.13] — 2026-06-09
+
+### Added
+- **Measured Overlap** (`overdraw`): contributor layer counts via depth prepass + blend counter; click-to-sample in R3F.
+- **Estimated Light Overlap** (`lightComplexity`): analytic light counter for point/spot/rect lights.
+- Optional `overdrawVisual` additive approx source; demo **Lights** tab (`?scene=lights`).
+- [Overlap & Light Diagnostics](/threejs-debug-view/guides/overlap-and-light-diagnostics/) guide.
+
+### Changed
+- Overlap label **Measured Overlap**; no `scale: 2.5`. Legend copy for overlap and light views.
+- Published ESM gzip: 30 kB.
+
+### Fixed
+- Premultiplied counter blend, readback Y-flip, renderer state restore, spotlight axis, `alphaHash` counter participation.
+
 ## [0.2.12] — 2026-06-08
 
 ### Changed

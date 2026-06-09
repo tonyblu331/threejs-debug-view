@@ -2,6 +2,7 @@ import {
   MeshBasicMaterial,
   MeshStandardMaterial,
   type Camera,
+  type RenderTarget,
   type Scene,
 } from "three"
 import { RenderPipeline, type WebGPURenderer } from "three/webgpu"
@@ -29,10 +30,15 @@ import {
   createOverdrawOverride,
   type OverdrawOverride,
 } from "./overdraw/overdraw-override"
+import { createMeasuredOverdrawOverride } from "./overdraw/measured-overdraw-override"
+import { createMeasuredOverdrawPass } from "./overdraw/measured-overdraw-pass"
+import { createLightComplexityMaterialFromScene } from "./lighting/light-complexity-material"
+import { DEFAULT_MAX_DISPLAY_LAYERS } from "./overdraw/overdraw-classification"
 
 export interface DebugPipelineRuntime {
   pipeline: RenderPipeline
   setViewport: (x: number, y: number, width: number, height: number) => void
+  readOverdrawLayerAt?: (x: number, y: number) => Promise<number | null>
   dispose: () => void
 }
 
@@ -54,6 +60,7 @@ interface OverdrawPass {
   setViewport(x: number, y: number, width: number, height: number): void
   getTextureNode(name?: string): DebugNode
   getViewZNode(name?: string): FloatNode
+  renderTarget: RenderTarget
   updateBefore(frame: unknown): unknown
   dispose(): void
 }
@@ -118,18 +125,44 @@ export function createDebugPipelineRuntime(
     })
   }
 
-  const overdrawOverride = plan.usesOverdrawPass ? createOverdrawOverride() : undefined
+  const measuredOverdrawOverride = plan.usesOverdrawPass
+    ? createMeasuredOverdrawOverride()
+    : undefined
   const overdrawPass = plan.usesOverdrawPass
-    ? createOverdrawPass(scene, camera, resolutionScale, overdrawOverride)
+    ? createMeasuredOverdrawPass(scene, camera, resolutionScale, measuredOverdrawOverride)
+    : undefined
+  const overdrawVisualOverride = plan.usesOverdrawVisualPass
+    ? createOverdrawOverride()
+    : undefined
+  const overdrawVisualPass = plan.usesOverdrawVisualPass
+    ? createOverdrawVisualPass(scene, camera, resolutionScale, overdrawVisualOverride)
     : undefined
   const shaderCostOverride = plan.usesShaderCostPass ? createShaderCostOverride() : undefined
   const shaderCostPass = plan.usesShaderCostPass
     ? createShaderCostPass(scene, camera, resolutionScale, shaderCostOverride)
     : undefined
+  let lightComplexityMaterial = plan.usesLightComplexityPass
+    ? createLightComplexityMaterialFromScene(scene)
+    : undefined
+  const lightComplexityPass = plan.usesLightComplexityPass ? pass(scene, camera) : undefined
+  if (lightComplexityPass) {
+    lightComplexityPass.setResolutionScale(resolutionScale)
+    lightComplexityPass.overrideMaterial = lightComplexityMaterial ?? null
+    const renderLightComplexityPass = lightComplexityPass.updateBefore.bind(lightComplexityPass)
+    lightComplexityPass.updateBefore = (frame: unknown) => {
+      const nextMaterial = createLightComplexityMaterialFromScene(scene)
+      lightComplexityPass.overrideMaterial = nextMaterial
+      lightComplexityMaterial?.dispose()
+      lightComplexityMaterial = nextMaterial
+      return renderLightComplexityPass(frame as Parameters<typeof renderLightComplexityPass>[0])
+    }
+  }
   const getDefaultNode = createDefaultDebugNodeResolver(sp, {
     lightingOnlyPass,
+    lightComplexityPass,
     materialDetailPass,
     overdrawPass,
+    overdrawVisualPass,
     reflectionOnlyPass,
     shaderCostPass,
     wireframePass,
@@ -148,6 +181,8 @@ export function createDebugPipelineRuntime(
   if (lightingOnlyPass) viewportPasses.push(lightingOnlyPass)
   if (reflectionOnlyPass) viewportPasses.push(reflectionOnlyPass)
   if (overdrawPass) viewportPasses.push(overdrawPass)
+  if (overdrawVisualPass) viewportPasses.push(overdrawVisualPass)
+  if (lightComplexityPass) viewportPasses.push(lightComplexityPass)
   if (shaderCostPass) viewportPasses.push(shaderCostPass)
   if (wireframePass) viewportPasses.push(wireframePass)
 
@@ -158,6 +193,9 @@ export function createDebugPipelineRuntime(
         debugPass.setViewport(x, y, width, height)
       }
     },
+    readOverdrawLayerAt: overdrawPass
+      ? (pixelX, pixelY) => readMeasuredOverdrawLayer(gl, overdrawPass.renderTarget, pixelX, pixelY)
+      : undefined,
     dispose: () => {
       pipeline.dispose()
       sp.dispose()
@@ -167,7 +205,11 @@ export function createDebugPipelineRuntime(
       reflectionOnlyPass?.overrideMaterial?.dispose()
       reflectionOnlyPass?.dispose()
       overdrawPass?.dispose()
-      overdrawOverride?.dispose()
+      measuredOverdrawOverride?.dispose()
+      overdrawVisualPass?.dispose()
+      overdrawVisualOverride?.dispose()
+      lightComplexityMaterial?.dispose()
+      lightComplexityPass?.dispose()
       shaderCostPass?.dispose()
       shaderCostOverride?.dispose()
       wireframePass?.overrideMaterial?.dispose()
@@ -179,6 +221,7 @@ export function createDebugPipelineRuntime(
 export function createDebugPipelineRuntimeKey(
   plan: DebugRenderPlan,
   layout: ResolvedDebugViewLayout,
+  viewport?: { width: number; height: number },
 ) {
   const viewKey = plan.pipelineViews
     .map((view) => [
@@ -204,7 +247,11 @@ export function createDebugPipelineRuntimeKey(
     plan.usesLightingOnlyPass,
     plan.usesReflectionOnlyPass,
     plan.usesOverdrawPass,
+    plan.usesOverdrawVisualPass,
     plan.usesShaderCostPass,
+    plan.usesLightComplexityPass,
+    viewport?.width ?? "",
+    viewport?.height ?? "",
   ].join(";")
 }
 
@@ -246,7 +293,27 @@ function createShaderCostPass(
   return shaderCostPass
 }
 
-function createOverdrawPass(
+async function readMeasuredOverdrawLayer(
+  gl: WebGPURenderer,
+  renderTarget: RenderTarget,
+  pixelX: number,
+  pixelY: number,
+) {
+  const width = renderTarget.width
+  const height = renderTarget.height
+  if (width <= 0 || height <= 0) return null
+
+  const x = Math.min(width - 1, Math.max(0, Math.floor(pixelX)))
+  const y = Math.min(height - 1, Math.max(0, height - 1 - Math.floor(pixelY)))
+  try {
+    const buffer = await gl.readRenderTargetPixelsAsync(renderTarget, x, y, 1, 1)
+    return Math.round(buffer[0] * DEFAULT_MAX_DISPLAY_LAYERS)
+  } catch {
+    return null
+  }
+}
+
+function createOverdrawVisualPass(
   scene: Scene,
   camera: Camera,
   resolutionScale: number,

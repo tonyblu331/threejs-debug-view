@@ -68,6 +68,10 @@ export function App() {
       url.searchParams.delete("scene")
       url.searchParams.delete("debugView")
       setDebugViewSource(null)
+    } else if (variant === "lights") {
+      url.searchParams.set("scene", variant)
+      url.searchParams.set("debugView", "lightComplexity")
+      setDebugViewSource("lightComplexity")
     } else {
       url.searchParams.set("scene", variant)
       url.searchParams.set("debugView", "overdraw")
@@ -159,12 +163,22 @@ function SceneTabs({
       >
         Overlap
       </button>
+      <button
+        aria-selected={active === "lights"}
+        onClick={() => onChange("lights")}
+        role="tab"
+        style={getSceneTabStyle(active === "lights")}
+        type="button"
+      >
+        Lights
+      </button>
     </div>
   )
 }
 
 function getSceneVariantFromUrl(): DemoSceneVariant {
   const scene = new URLSearchParams(window.location.search).get("scene")
+  if (scene === "lights") return "lights"
   return scene === "overdraw" || scene === "overlap" ? "overdraw" : "main"
 }
 

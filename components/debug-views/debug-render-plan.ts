@@ -33,6 +33,8 @@ export interface DebugRenderPlan {
   usesLightingOnlyPass: boolean
   usesReflectionOnlyPass: boolean
   usesOverdrawPass: boolean
+  usesOverdrawVisualPass: boolean
+  usesLightComplexityPass: boolean
   usesShaderCostPass: boolean
   sceneTextureTypes: DebugTextureTypeOverride[]
   materialDetailTextureTypes: DebugTextureTypeOverride[]
@@ -64,6 +66,8 @@ export function createDebugRenderPlan(
     usesLightingOnlyPass: usesDefaultSource(pipelineViews, "lightingOnly"),
     usesReflectionOnlyPass: usesDefaultSource(pipelineViews, "reflectionOnly"),
     usesOverdrawPass: usesDefaultSource(pipelineViews, "overdraw"),
+    usesOverdrawVisualPass: usesDefaultSource(pipelineViews, "overdrawVisual"),
+    usesLightComplexityPass: usesDefaultSource(pipelineViews, "lightComplexity"),
     usesShaderCostPass: usesDefaultSource(pipelineViews, "shaderCost"),
     sceneTextureTypes: getSceneTextureTypes(sceneOutputs),
     materialDetailTextureTypes: getMaterialDetailTextureTypes(materialDetailOutputs),

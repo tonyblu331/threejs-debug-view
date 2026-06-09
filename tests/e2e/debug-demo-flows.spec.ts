@@ -92,8 +92,8 @@ test.describe("debug demo headless flows", () => {
     await waitForDemoOrSkip(page)
 
     await expectLevaHidden(page)
-    await expect(page.getByText("none", { exact: true })).toHaveCount(0)
-    await expect(page.getByText("heavy", { exact: true })).toHaveCount(0)
+    await expect(page.getByText("0 layers", { exact: true })).toHaveCount(0)
+    await expect(page.getByText("8+ layers", { exact: true })).toHaveCount(0)
     await expectCanvasRenders(page)
     expect(messages).toEqual([])
   })

@@ -49,7 +49,7 @@ Keep debug views behind a dev flag unless you intentionally expose them in produ
 
 ## Live demo
 
-Use the panel to switch views, layouts, and pane assignments. On **Shader Complexity**, click the viewport to sample a pixel and move the legend marker.
+Use the panel to switch views, layouts, and pane assignments. Try the **Overlap** and **Lights** scene tabs for measured overlap and estimated light overlap. On **Shader Complexity** or **Measured Overlap**, click the viewport to sample a pixel and move the legend marker.
 
 [Open the demo in a new tab](/threejs-debug-view/demo/)
 
@@ -66,7 +66,7 @@ The demo requires browser WebGPU support. When native WebGPU is unavailable, the
 
 ## What it does
 
-- **Built-in sources** — beauty, normals, depth, albedo, roughness, AO, opacity, emissive, wireframe, lighting-only, reflection-only, overlap, and shader cost.
+- **Built-in sources** — beauty, normals, depth, albedo, roughness, AO, opacity, emissive, wireframe, lighting-only, reflection-only, measured overlap, estimated light overlap, and shader cost.
 - **Render layouts** — single, overlay, split, diagonal breakdown, row, column, and grid.
 - **Explicit pane assignments** — fixed views, labels, per-pane cameras, and resolution scaling.
 - **Headless runtime** — same WebGPU pipeline without React.

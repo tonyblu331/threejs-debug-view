@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.13] - 2026-06-09
+
+### Added
+- **Measured Overlap** (`overdraw`): depth prepass + `ONE ONE` blend counter for contributor layer counts; click-to-sample integer layers in the R3F overlay.
+- **Estimated Light Overlap** (`lightComplexity`): fragment analytic counter for point, spot, and rect lights on the default forward renderer.
+- Optional `overdrawVisual` source for additive overlap visualization (approx).
+- Demo **Lights** scene tab (`?scene=lights&debugView=lightComplexity`) with overlapping point lights.
+- Starlight guide [Overlap & Light Diagnostics](https://tonyblu331.github.io/threejs-debug-view/guides/overlap-and-light-diagnostics/).
+
+### Changed
+- Built-in overlap label renamed to **Measured Overlap**; removed heatmap `scale: 2.5` magic constant.
+- Overlap legend copy: `0 layers` → `8+ layers`; light overlap legend: `0 lights` → `8+ lights`.
+- Published ESM gzip: 30 kB.
+
+### Fixed
+- Measured overlap counter uses premultiplied alpha for correct layer accumulation.
+- GPU readback flips Y for click sampling; renderer clear color and pass state restored after the measured overlap subgraph.
+- Spotlight axis direction for light-complexity cone tests; `alphaHash`-only materials participate in the counter pass.
+
 ## [0.2.12] - 2026-06-08
 
 ### Changed

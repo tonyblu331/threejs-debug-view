@@ -1,0 +1,79 @@
+---
+title: Overlap & Light Diagnostics
+description: Measured contributor overlap and estimated light overlap on the default WebGPU forward renderer.
+---
+
+Two heatmap views answer different fill-pressure questions. They are orthogonal to **Shader Complexity** (`shaderCost`).
+
+| Source | Label | Question |
+| --- | --- | --- |
+| `overdraw` | **Measured Overlap** | How many translucent / alpha-cutout layers survive depth at this pixel? |
+| `overdrawVisual` | Overlap Visualization (approx) | Additive teaching view — not a layer counter. Opt-in source only. |
+| `lightComplexity` | **Estimated Light Overlap** | How many dynamic lights (point / spot / rect) reach this pixel? |
+
+## Measured overlap (`overdraw`)
+
+v1 counts **contributors only**:
+
+- **Counts:** transparent meshes, alpha-tested foliage cards, stacked glass-style layers.
+- **Does not count:** opaque solids (cliff, ground, rocks). They write depth in a prepass and occlude contributors behind them.
+- **Pipeline:** opaque depth prepass → `ONE ONE` blend counter → heatmap. R channel stores `count / 16`.
+
+Legend: `0 layers` → `8+ layers`. Click the viewport in the R3F overlay to sample integer layers from the pass buffer (single-view compositor path).
+
+```text
+?scene=overdraw&debugView=overdraw
+```
+
+The repo **Overlap** demo tab opens this preset. Foliage cards should read hotter than the opaque cliff.
+
+:::caution
+Do not use `decodeHeatmapCost()` for layer counts — that helper is for shader-cost heatmaps only. Measured overlap reads linear R from the diagnostic pass.
+:::
+
+## Estimated light overlap (`lightComplexity`)
+
+Fragment-side analytic counter on the **default forward renderer**:
+
+- **Includes:** `PointLight`, `SpotLight`, `RectAreaLight` within range / cone.
+- **Excludes:** `DirectionalLight`, `AmbientLight`, `HemisphereLight`, environment IBL.
+- **v1 limits:** no shadow sampling; custom app `lightsNode` will not match.
+
+Legend: `0 lights` → `8+ lights`.
+
+```text
+?scene=lights&debugView=lightComplexity
+```
+
+The repo **Lights** demo tab opens this preset (dark room, overlapping point lights).
+
+## Demo scenes
+
+| Tab | URL | Default view |
+| --- | --- | --- |
+| Overlap | `?scene=overdraw&debugView=overdraw` | Measured Overlap |
+| Lights | `?scene=lights&debugView=lightComplexity` | Estimated Light Overlap |
+
+Social capture preset for overlap breakdown screenshots:
+
+```text
+/?capture=social&scene=overdraw
+```
+
+Run `pnpm capture:social` from the repository root (requires the Vite dev server and WebGPU).
+
+## Headless runtime
+
+Pass-backed flags from `createDebugRenderPlan()`:
+
+- `usesOverdrawPass` — measured overlap subgraph
+- `usesOverdrawVisualPass` — additive approx (optional)
+- `usesLightComplexityPass` — estimated light overlap
+
+`createDebugPipelineRuntime()` exposes `readOverdrawLayerAt(pixelX, pixelY)` when measured overlap is active.
+
+## Related
+
+- [Built-in Views](/threejs-debug-view/guides/built-in-views/)
+- [Shader Cost Heatmap](/threejs-debug-view/guides/shader-cost-heatmap/) — separate signal from overlap
+- [Performance Model](/threejs-debug-view/guides/performance/)

@@ -30,6 +30,8 @@ export type DebugViewSource =
   | "lightingOnly"
   | "reflectionOnly"
   | "overdraw"
+  | "overdrawVisual"
+  | "lightComplexity"
   | "shaderCost"
 
 export interface DebugView {

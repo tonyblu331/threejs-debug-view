@@ -24,6 +24,8 @@ describe("debug view definitions", () => {
       "lightingOnly",
       "reflectionOnly",
       "overdraw",
+      "overdrawVisual",
+      "lightComplexity",
       "shaderCost",
     ])
   })
@@ -199,7 +201,7 @@ describe("debug view definitions", () => {
   })
 
   it("plans shader-cost as a dedicated heatmap pass", () => {
-    const plan = createDebugRenderPlan(DEFAULT_DEBUG_VIEWS, 14, "single")
+    const plan = createDebugRenderPlan(DEFAULT_DEBUG_VIEWS, 15, "single")
 
     expect(plan.views.map((view) => view.source)).toEqual(["shaderCost"])
     expect(plan.pipelineViews.map((view) => view.source)).toEqual(["shaderCost"])

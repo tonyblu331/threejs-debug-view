@@ -27,13 +27,16 @@ import type { DebugViewsOptions } from "./debug-views-options"
 import {
   createDebugPipelineRuntime,
   createDebugPipelineRuntimeKey,
+  type DebugPipelineRuntime,
 } from "./debug-pipeline-runtime"
 import { requiresViewportRuntime } from "./debug-viewport-plan"
 import { createDebugViewportRenderer, type DebugViewportRenderer } from "./debug-viewport-renderer"
 import {
   DebugViewportLabelOverlay,
+  LightComplexityLegendOverlay,
   OverdrawLegendOverlay,
   ShaderCostLegendOverlay,
+  type OverdrawLayerSample,
   type ShaderCostSample,
 } from "./debug-views-overlays"
 
@@ -149,12 +152,27 @@ function DebugViewsPipeline({
   )
   const showsShaderCost = visibleSources.has("shaderCost")
   const showsOverdraw = visibleSources.has("overdraw")
+  const showsLightComplexity = visibleSources.has("lightComplexity")
   const composePipelineKey = useMemo(
-    () => createDebugPipelineRuntimeKey(plan, resolvedLayout),
-    [plan, resolvedLayout],
+    () => createDebugPipelineRuntimeKey(plan, resolvedLayout, {
+      width: gl.domElement.width,
+      height: gl.domElement.height,
+    }),
+    [plan, resolvedLayout, gl.domElement.width, gl.domElement.height],
   )
   const webGpuRenderer = gl as unknown as WebGPURenderer
   const [shaderCostSample, setShaderCostSample] = useState<ShaderCostSample | null>(null)
+  const [overdrawSample, setOverdrawSample] = useState<OverdrawLayerSample | null>(null)
+  const debugRuntimeRef = useDebugPipeline(
+    !usesViewportRuntime,
+    scene,
+    camera,
+    plan,
+    composePipelineKey,
+    resolvedLayout,
+    webGpuRenderer,
+    uniforms,
+  )
 
   useEffect(() => {
     if (!showsShaderCost) {
@@ -184,16 +202,44 @@ function DebugViewsPipeline({
     }
   }, [gl, showsShaderCost])
 
-  const composePipelineRef = useDebugPipeline(
-    !usesViewportRuntime,
-    scene,
-    camera,
-    plan,
-    composePipelineKey,
-    resolvedLayout,
-    webGpuRenderer,
-    uniforms,
-  )
+  useEffect(() => {
+    if (!showsOverdraw) {
+      setOverdrawSample(null)
+      return
+    }
+
+    const canvas = gl.domElement
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (event.button !== 0) return
+
+      const { clientX, clientY } = event
+      const rect = canvas.getBoundingClientRect()
+      if (rect.width <= 0 || rect.height <= 0) return
+
+      const pixelX = ((clientX - rect.left) / rect.width) * canvas.width
+      const pixelY = ((clientY - rect.top) / rect.height) * canvas.height
+
+      requestAnimationFrame(() => {
+        void debugRuntimeRef.current?.readOverdrawLayerAt?.(pixelX, pixelY).then((layers) => {
+          if (layers == null) return
+
+          setOverdrawSample({
+            layers,
+            x: clientX,
+            y: clientY,
+          })
+        })
+      })
+    }
+
+    canvas.addEventListener("pointerdown", handlePointerDown)
+
+    return () => {
+      canvas.removeEventListener("pointerdown", handlePointerDown)
+    }
+  }, [debugRuntimeRef, gl, showsOverdraw])
+
   const viewportRuntimeRef = useDebugViewportPipelines(
     usesViewportRuntime,
     scene,
@@ -222,7 +268,7 @@ function DebugViewsPipeline({
           overlayOpacity,
           dividerStyle,
         )
-        composePipelineRef.current?.render()
+        debugRuntimeRef.current?.pipeline.render()
       }
     } finally {
       scene.background = previousBackground
@@ -239,7 +285,8 @@ function DebugViewsPipeline({
           viewportPlan={viewportPlan}
         />
       ) : null}
-      {showLegends && showsOverdraw ? <OverdrawLegendOverlay /> : null}
+      {showLegends && showsOverdraw ? <OverdrawLegendOverlay sample={overdrawSample} /> : null}
+      {showLegends && showsLightComplexity ? <LightComplexityLegendOverlay /> : null}
       {showLegends && showsShaderCost ? (
         <ShaderCostLegendOverlay sample={shaderCostSample} />
       ) : null}
@@ -257,22 +304,22 @@ function useDebugPipeline(
   gl: WebGPURenderer,
   uniforms: DebugViewUniforms,
 ) {
-  const pipelineRef = useRef<RenderPipeline | null>(null)
+  const runtimeRef = useRef<DebugPipelineRuntime | null>(null)
 
   useEffect(() => {
     if (!enabled) return
 
     const runtime = createDebugPipelineRuntime(scene, camera, plan, layout, gl, uniforms)
 
-    pipelineRef.current = runtime.pipeline
+    runtimeRef.current = runtime
 
     return () => {
       runtime.dispose()
-      pipelineRef.current = null
+      runtimeRef.current = null
     }
   }, [enabled, scene, camera, runtimeKey, layout, gl, uniforms])
 
-  return pipelineRef
+  return runtimeRef
 }
 
 function useDebugViewportPipelines(

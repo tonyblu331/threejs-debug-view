@@ -22,7 +22,7 @@ import {
   type Texture,
 } from "three"
 
-export type DemoSceneVariant = "main" | "overdraw"
+export type DemoSceneVariant = "main" | "overdraw" | "lights"
 
 const DAMAGED_HELMET_URL = `${import.meta.env.BASE_URL}models/DamagedHelmet/glTF/DamagedHelmet.gltf`
 const textureRoot = `${import.meta.env.BASE_URL}textures/cliff_side`
@@ -596,6 +596,48 @@ function MainDemoScene() {
   )
 }
 
+function LightOverlapScene() {
+  const roomMaterial = useMemo(
+    () =>
+      new MeshStandardMaterial({
+        color: "#141414",
+        metalness: 0,
+        roughness: 0.92,
+      }),
+    [],
+  )
+
+  return (
+    <group>
+      <mesh material={roomMaterial} position={[0, 0, -2.4]} receiveShadow>
+        <planeGeometry args={[8, 5]} />
+      </mesh>
+      <mesh material={roomMaterial} position={[0, -1.2, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry args={[8, 8]} />
+      </mesh>
+      <mesh material={roomMaterial} position={[0, 0.2, 0]}>
+        <icosahedronGeometry args={[0.55, 1]} />
+      </mesh>
+      <pointLight color="#ff6b4a" distance={2.8} intensity={18} position={[-0.8, 0.8, 0.4]} />
+      <pointLight color="#ffd166" distance={2.6} intensity={16} position={[0.2, 0.6, 0.2]} />
+      <pointLight color="#4cc9f0" distance={2.5} intensity={14} position={[0.9, 0.5, -0.1]} />
+      <pointLight color="#b5179e" distance={2.4} intensity={12} position={[-0.2, 0.2, 0.8]} />
+      <pointLight color="#80ed99" distance={2.2} intensity={10} position={[0.5, -0.1, 0.7]} />
+    </group>
+  )
+}
+
+function LightsDemoScene() {
+  return (
+    <>
+      <color attach="background" args={["#050505"]} />
+      <ambientLight intensity={0.04} />
+      <OrbitControls enableDamping makeDefault maxDistance={6} minDistance={2.4} target={[0, 0, 0]} />
+      <LightOverlapScene />
+    </>
+  )
+}
+
 function OverdrawDemoScene() {
   return (
     <>
@@ -612,5 +654,7 @@ function OverdrawDemoScene() {
 }
 
 export function Scene({ variant = "main" }: { variant?: DemoSceneVariant }) {
-  return variant === "overdraw" ? <OverdrawDemoScene /> : <MainDemoScene />
+  if (variant === "overdraw") return <OverdrawDemoScene />
+  if (variant === "lights") return <LightsDemoScene />
+  return <MainDemoScene />
 }

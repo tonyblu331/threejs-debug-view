@@ -223,13 +223,16 @@ Owns:
 
 - transparent layer pressure
 - glass-behind-glass fixtures
-- additive or counter-style overdraw pass
+- measured contributor layer count (blend or atomic counter)
 - independent `overdraw` debug source
+
+SDD: `components/debug-views/overdraw/measured-overdraw.sdd.md`
 
 Relevant files:
 
-- future: `components/debug-views/overdraw/overdraw-pass.ts`
-- future: `components/debug-views/overdraw/overdraw-materials.ts`
+- `components/debug-views/overdraw/overdraw-classification.ts`
+- `components/debug-views/overdraw/measured-overdraw-pass.ts`
+- `components/debug-views/overdraw/overdraw-override.ts` (becomes `overdrawVisual` in Slice 3)
 - `src/components/Scene.tsx`
 
 ### Skill 4: Measurement / Validation
@@ -324,22 +327,19 @@ Done when:
 
 ### Phase 3: Overdraw / Layer Pressure
 
-Goal: catch glass behind glass and layered content.
+Goal: catch glass behind glass and layered content with **integer layer counts**, not additive brightness.
 
-- Add `overdraw` source to debug view definitions.
-- Add overdraw pass with cheap materials.
-- Preserve alpha/coverage enough to avoid lying about cutouts.
-- Add fixtures:
-  - one glass pane
-  - two stacked glass panes
-  - four stacked glass panes
-  - alpha-tested foliage/card
+See `components/debug-views/overdraw/measured-overdraw.sdd.md` for spikes, contributor-only scope, and delivery slices.
+
+- Ship measured `overdraw` (depth prepass + blend counter v1; atomics only if blend fails)
+- Keep `shaderCost` and `overdraw` orthogonal — do not merge into one heatmap
+- Add fixtures: stacked glass quads, alpha-tested foliage/card, foliage-over-cliff demo case
 
 Done when:
 
-- stacked transparent layers become progressively hotter
+- stacked transparent layers report 1/2/4 layers in fixtures
 - overdraw is independently selectable
-- composite pressure can use `shaderComplexity * overdraw`
+- composite pressure view remains deferred (not required for Slice 2)
 
 ### Slice 4: Add Timing / Expert Validation
 

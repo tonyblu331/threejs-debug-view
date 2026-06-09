@@ -15,7 +15,7 @@ test.describe("debug demo controls", () => {
     await expect(page).toHaveURL(/scene=overdraw/)
     await expect(page).toHaveURL(/debugView=overdraw/)
     await expect(getSceneTab(page, "Overlap")).toHaveAttribute("aria-selected", "true")
-    await expectSelectedOption(page, "View", "Overlap")
+    await expectSelectedOption(page, "View", "Measured Overlap")
 
     await getSceneTab(page, "Main").click()
     await expect(page).toHaveURL(/\/$/)
@@ -27,7 +27,7 @@ test.describe("debug demo controls", () => {
     await expect(page).toHaveURL(/scene=overdraw/)
     await waitForDemoOrSkip(page)
     await expect(getSceneTab(page, "Overlap")).toHaveAttribute("aria-selected", "true")
-    await expectSelectedOption(page, "View", "Overlap")
+    await expectSelectedOption(page, "View", "Measured Overlap")
 
     await page.goForward()
     await expect(page).toHaveURL(/\/$/)
@@ -44,9 +44,9 @@ test.describe("debug demo controls", () => {
     await waitForDemoOrSkip(page)
 
     await expect(getSceneTab(page, "Overlap")).toHaveAttribute("aria-selected", "true")
-    await expectSelectedOption(page, "View", "Overlap")
-    await expect(page.getByText("none", { exact: true })).toBeVisible()
-    await expect(page.getByText("heavy", { exact: true })).toBeVisible()
+    await expectSelectedOption(page, "View", "Measured Overlap")
+    await expect(page.getByText("0 layers", { exact: true })).toBeVisible()
+    await expect(page.getByText("8+ layers", { exact: true })).toBeVisible()
 
     await getSceneTab(page, "Main").click()
     await expect(page).not.toHaveURL(/debugView=/)
@@ -145,7 +145,7 @@ test.describe("debug demo controls", () => {
     await page.goto("/")
     await waitForDemoOrSkip(page)
 
-    for (const tab of ["Main", "Overlap"]) {
+    for (const tab of ["Main", "Overlap", "Lights"]) {
       await getSceneTab(page, tab).click()
       await expect(getSceneTab(page, tab)).toHaveAttribute("aria-selected", "true")
 
@@ -176,6 +176,21 @@ test.describe("debug demo controls", () => {
     await expect(page.getByRole("combobox", { name: "Pane 4" })).toBeVisible()
     await expect(page.getByText("Diagonal angle", { exact: true })).toBeVisible()
 
+    expect(messages).toEqual([])
+  })
+
+  test("lights scene initializes estimated light overlap view", async ({ page }) => {
+    const messages = collectRelevantConsoleMessages(page)
+
+    await page.goto("/?scene=lights&debugView=lightComplexity")
+    await waitForDemoOrSkip(page)
+
+    await expect(page).toHaveURL(/scene=lights/)
+    await expect(page).toHaveURL(/debugView=lightComplexity/)
+    await expect(getSceneTab(page, "Lights")).toHaveAttribute("aria-selected", "true")
+    await expectSelectedOption(page, "View", "Estimated Light Overlap")
+    await expect(page.getByText("0 lights", { exact: true })).toBeVisible()
+    await expect(page.getByText("8+ lights", { exact: true })).toBeVisible()
     expect(messages).toEqual([])
   })
 })

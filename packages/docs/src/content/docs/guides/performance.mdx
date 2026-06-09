@@ -57,7 +57,9 @@ Some views are intentionally not folded into the cheap material-channel path:
 | `wireframe` | Needs a wireframe override material. |
 | `lightingOnly` | Needs a neutral lighting override material. |
 | `reflectionOnly` | Needs a reflective override material. |
-| `overdraw` | Needs an alpha/overdraw diagnostic pass. |
+| `overdraw` | Measured overlap: depth prepass + blend counter subgraph. |
+| `overdrawVisual` | Optional additive overlap visualization (approx). |
+| `lightComplexity` | Estimated light overlap via `NodeMaterial` override pass. |
 | `shaderCost` | Needs bucketed override materials based on material complexity signals. |
 
 These views render only when selected or visible in the active layout/viewport plan.

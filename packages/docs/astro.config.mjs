@@ -43,6 +43,7 @@ export default defineConfig({
             "guides/custom-debug-views",
             "guides/performance",
             "guides/shader-cost-heatmap",
+            "guides/overlap-and-light-diagnostics",
             "guides/viewport-labels",
           ],
         },

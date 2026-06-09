@@ -12,7 +12,7 @@
 
 [![npm version](https://img.shields.io/npm/v/threejs-debug-view.svg)](https://www.npmjs.com/package/threejs-debug-view)
 [![license](https://img.shields.io/npm/l/threejs-debug-view.svg)](./LICENSE)
-[![library gzip](https://img.shields.io/badge/library_gzip-26_kB-007ec6)](https://github.com/tonyblu331/threejs-debug-view#bundle-size)
+[![library gzip](https://img.shields.io/badge/library_gzip-30_kB-007ec6)](https://github.com/tonyblu331/threejs-debug-view#bundle-size)
 
 ## Install
 
@@ -63,7 +63,7 @@ The runtime uses `three/webgpu`, `three/tsl`, WebGPU MRT passes, and fullscreen 
 
 ## What It Shows
 
-Built-in debug sources include beauty, normal, depth, base color, material normal, emissive, roughness, AO, metallic, opacity, wireframe, lighting-only, reflection-only, overlap, and shader complexity.
+Built-in debug sources include beauty, normal, depth, base color, material normal, emissive, roughness, AO, metallic, opacity, wireframe, lighting-only, reflection-only, measured overlap, estimated light overlap, and shader complexity.
 
 Material scalars are packed into one RGBA target:
 
@@ -72,11 +72,13 @@ Material scalars are packed into one RGBA target:
 - `B`: AO
 - `A`: opacity
 
-Material-normal uses a focused material-detail pass. Emissive shares the reusable scene pass with the packed material scalar views. Wireframe, lighting-only, reflection-only, overlap, and shader-cost views are created only when the active layout needs them.
+Material-normal uses a focused material-detail pass. Emissive shares the reusable scene pass with the packed material scalar views. Wireframe, lighting-only, reflection-only, measured overlap, estimated light overlap, and shader-cost views are created only when the active layout needs them.
 
 Roughness, metallic, AO, opacity, and emissive use shader-side defaults when a material does not support the property. The debug runtime does not patch scene materials to make a view compile. AO reads material-authored AO maps; it is not a screen-space AO buffer unless you provide one as a custom view or pass-backed source.
 
-`shaderCost` is an estimate, not a native GPU instruction counter. It scores materials through source-labeled shader-unit buckets such as ALU proxy work, texture samples, dependent texture risk, branch/discard pressure, bandwidth pressure, and confidence. Overlap and render-pass timing are separate diagnostics, not shader-cost inputs. In the bundled demo overlay, click the viewport to place an inspector-style sample cursor and read the matching point on the legend ramp.
+`shaderCost` is an estimate, not a native GPU instruction counter. It scores materials through source-labeled shader-unit buckets such as ALU proxy work, texture samples, dependent texture risk, branch/discard pressure, bandwidth pressure, and confidence. Measured overlap, estimated light overlap, and render-pass timing are separate diagnostics, not shader-cost inputs.
+
+**Measured Overlap** (`overdraw`) counts translucent and alpha-cutout contributor layers via a depth prepass and blend counter — opaque meshes write depth but do not increment the layer count. **Estimated Light Overlap** (`lightComplexity`) counts point, spot, and rect lights on the default forward renderer (globals and shadows excluded in v1). In the bundled demo overlay, click the viewport on **Shader Complexity** or **Measured Overlap** to sample a pixel and read the legend marker. Demo tabs: **Overlap** (`?scene=overdraw`) and **Lights** (`?scene=lights`).
 
 The demo overlay hides the Leva `Enabled` toggle because the demo is always showing debug views. Pass `showEnabledControl={false}` to `DebugViewLayer` to match that behavior.
 
@@ -148,4 +150,4 @@ The e2e suite keeps CI strict: if Chromium cannot start the WebGPU demo in CI, t
 
 ## Bundle size
 
-The npm badge reports the gzipped size of the published ESM files in `dist/` (~26 kB). Peer dependencies such as `three`, `react`, `react-dom`, and `@react-three/fiber` are excluded. Bundlephobia does not reliably analyze this package because of WebGPU/TSL peer imports, so the badge is measured locally via `pnpm pack:check`.
+The npm badge reports the gzipped size of the published ESM files in `dist/` (~30 kB). Peer dependencies such as `three`, `react`, `react-dom`, and `@react-three/fiber` are excluded. Bundlephobia does not reliably analyze this package because of WebGPU/TSL peer imports, so the badge is measured locally via `pnpm pack:check`.

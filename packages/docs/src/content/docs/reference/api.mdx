@@ -159,7 +159,9 @@ Built-in `DebugViewSource` values:
 | `wireframe` | Override-material pass. |
 | `lightingOnly` | Neutral lighting override pass. |
 | `reflectionOnly` | Reflective override pass. |
-| `overdraw` | Heatmap-style overlap diagnostic with a separate legend ramp. |
+| `overdraw` | Measured overlap heatmap (contributor layer count). Click the viewport to sample integer layers from the pass buffer. |
+| `overdrawVisual` | Additive overlap visualization (approx). |
+| `lightComplexity` | Estimated light overlap heatmap (point/spot/rect lights; globals excluded). |
 | `shaderCost` | Shader-complexity heatmap from shader-unit buckets. Click the viewport in the bundled overlay to sample a pixel; the legend shows **shader complexity** when idle. |
 
 `shaderCost` is not a native GPU instruction counter. Render-pass timing and overlap diagnostics are separate signals, not ALU/TEX/occupancy data.

@@ -54,7 +54,9 @@ Unsupported material properties use shader-side defaults instead of temporary ma
 | `wireframe` | `passthrough` | White wireframe override material. | Renders only when selected or visible in a layout. |
 | `lightingOnly` | `passthrough` | Neutral non-metal material override. | Renders only when selected or visible in a layout. |
 | `reflectionOnly` | `passthrough` | Reflective neutral material override. | Renders only when selected or visible in a layout. |
-| `overdraw` | `heatmap` | Alpha-heavy overlap diagnostic with its own legend ramp. | Renders only when selected or visible in a layout. |
+| `overdraw` | `heatmap` | Measured contributor layer count (depth prepass + blend counter). Legend: `0 / 1 / 4 / 8+ layers`. Click to sample integer layers from the pass buffer. | Renders only when selected or visible in a layout. |
+| `overdrawVisual` | `heatmap` | Optional additive overlap visualization (approx). Not in `DEFAULT_DEBUG_VIEWS`. | Renders only when selected or visible in a layout. |
+| `lightComplexity` | `heatmap` | Estimated dynamic light overlap on the default forward renderer. Shadows excluded in v1. | Renders only when selected or visible in a layout. |
 | `shaderCost` | `heatmap` | Shader-cost heatmap from source-labeled shader-unit buckets. | Renders only when selected or visible in a layout. |
 
 Demand-driven override passes add another scene render only when the selected layout or viewport plan actually needs that source.
