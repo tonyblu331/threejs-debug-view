@@ -3,17 +3,17 @@ title: Quick Start
 description: Install and integrate debug views with or without React Three Fiber.
 ---
 
-Pick the path that matches your app. Both use the same WebGPU + TSL runtime; only the UI layer differs.
+Both paths use the same WebGPU + TSL runtime. Only the UI layer differs: headless helpers from the root export, or the R3F adapter with optional Leva and DOM overlays.
 
 ## Install without R3F
 
-For a vanilla Three.js WebGPU app that owns its own render loop:
+For a vanilla Three.js WebGPU app:
 
 ```bash
 pnpm add threejs-debug-view three
 ```
 
-Wire `createDebugPipelineRuntime` or `createDebugViewportRenderer` into your frame loop. No React, R3F, or Leva required.
+Wire the headless runtime into your frame loop:
 
 ```ts
 import {
@@ -47,19 +47,17 @@ function animate() {
 }
 ```
 
-See [Headless Runtime](/threejs-debug-view/guides/headless-runtime/) for multi-pane layouts, viewport scaling, and when to use `createDebugViewportRenderer`.
+Next: [Headless Runtime](/threejs-debug-view/guides/headless-runtime/) for multi-pane layouts, viewport scaling, and `requiresViewportRuntime`.
 
 ## Install with R3F
 
-For a React Three Fiber app, add the adapter peers:
+For React Three Fiber, add the adapter peers:
 
 ```bash
 pnpm add threejs-debug-view three react react-dom @react-three/fiber @react-three/drei leva
 ```
 
 ## Batteries included (R3F)
-
-Use `threejs-debug-view/r3f` when you want the default overlay with Leva controls and built-in views already wired.
 
 ```tsx
 import { DebugViewLayer } from "threejs-debug-view/r3f"
@@ -70,13 +68,11 @@ function DebugLayer() {
 }
 ```
 
-Mount `DebugLayer` inside your `<Canvas>`. Leva mounts on `document.body` automatically — you do not import or place `<Leva />` yourself unless you set `showLeva={false}` and use `DebugViewLeva` for custom shell placement.
+Mount inside `<Canvas>`. Leva mounts on `document.body` automatically unless you set `showLeva={false}`.
 
-See [Batteries Included](/threejs-debug-view/guides/batteries-included/) for what ships out of the box, custom Leva placement, and the React-free core export.
+Next: [Batteries Included](/threejs-debug-view/guides/batteries-included/) for Leva placement, props, and what ships on npm.
 
 ## Bring your own controls (R3F)
-
-Use the lower-level component and bundled hook when your app owns UI state:
 
 ```tsx
 import { DEFAULT_DEBUG_VIEWS, getDebugViewLabels } from "threejs-debug-view"
@@ -89,28 +85,22 @@ const controls = useDebugViewsControls({
 <DebugViews views={DEFAULT_DEBUG_VIEWS} {...controls} />
 ```
 
-## View a specific source
-
-Pin one view from your own UI by passing `activeView` to `DebugViews`:
+## Pin a specific view
 
 ```tsx
-const emissiveView = DEFAULT_DEBUG_VIEWS.findIndex((view) => view.source === "emissive")
+const emissiveIndex = DEFAULT_DEBUG_VIEWS.findIndex((view) => view.source === "emissive")
 
 <DebugViews
   views={DEFAULT_DEBUG_VIEWS}
-  activeView={emissiveView}
+  activeView={emissiveIndex}
   layout="single"
   showLabels
 />
 ```
 
-The demo uses this pattern for capture URLs such as `?debugView=emissive`. It also supports `?scene=overdraw` to open the foliage overdraw scene instead of the main helmet/material-sphere scene.
+The repo demo supports URL params such as `?debugView=emissive` and `?scene=overdraw`. For a fixed breakdown capture preset, open `/?capture=social&scene=overdraw` or run `pnpm capture:social` from the repository root.
 
-For a fixed breakdown presentation shot (Normal, Shader Complexity, Albedo, Depth with labels and legends, Leva hidden), open `/?capture=social&scene=overdraw`. From the repository root, run `pnpm capture:social` while the Vite dev server is running to write `capture/breakdown-social-x.png`.
-
-## Verification
-
-Run the project checks before trusting a debug pipeline change:
+## Verify locally
 
 ```bash
 pnpm typecheck
@@ -118,4 +108,4 @@ pnpm test
 pnpm test:e2e
 ```
 
-`pnpm test:e2e` exercises the local demo with Chromium and native WebGPU. On machines without native WebGPU it may skip locally, but CI treats that gate as a failure.
+`pnpm test:e2e` needs Chromium with native WebGPU. CI fails if the demo cannot start WebGPU there.

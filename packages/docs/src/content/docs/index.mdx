@@ -1,9 +1,9 @@
 ---
 title: threejs-debug-view
-description: Batteries-included TSL debug views for Three.js WebGPU render pipelines.
+description: TSL debug views for Three.js WebGPU render pipelines — with or without React Three Fiber.
 template: splash
 hero:
-  tagline: Batteries-included debug views for Three.js WebGPU. Drop in one R3F layer, switch buffers, layouts, overlap, and shader cost without wiring passes by hand.
+  tagline: Named debug views for Three.js WebGPU — use the headless runtime in your own loop, or drop in one R3F layer with layouts, overlap, and shader cost built in.
   image:
     file: ../../assets/logo.svg
     alt: threejs-debug-view logo
@@ -11,41 +11,45 @@ hero:
     - text: Quick Start
       link: /threejs-debug-view/guides/quick-start/
       icon: right-arrow
-    - text: Batteries Included
-      link: /threejs-debug-view/guides/batteries-included/
+    - text: Headless Runtime
+      link: /threejs-debug-view/guides/headless-runtime/
       icon: document
-    - text: View on GitHub
-      link: https://github.com/tonyblu331/threejs-debug-view
+    - text: Live Demo
+      link: /threejs-debug-view/demo/
       icon: external
+    - text: GitHub
+      link: https://github.com/tonyblu331/threejs-debug-view
+      icon: github
 ---
 
-`threejs-debug-view` gives you named debug views for the buffers your scene already produces: beauty, normals, depth, material channels, wireframe, lighting-only, reflection-only, overlap, and shader cost.
-
-Import from the **root package** when you own the WebGPU render loop (no React). Import from **`threejs-debug-view/r3f`** when you want a batteries-included overlay inside a React Three Fiber `<Canvas>`.
+`threejs-debug-view` exposes named debug views for the buffers your scene already produces: beauty, normals, depth, material channels, wireframe, lighting-only, reflection-only, overlap, and shader cost.
 
 ## Without R3F
 
-The root export provides view definitions, render planning, and headless WebGPU runtime helpers (`createDebugPipelineRuntime`, `createDebugViewportRenderer`).
+Import from **`threejs-debug-view`** when you own the WebGPU render loop. You get view definitions, render planning, and runtime helpers such as `createDebugPipelineRuntime` and `createDebugViewportRenderer`. No React, R3F, or Leva required.
 
-[Quick Start — headless install](/threejs-debug-view/guides/quick-start/#install-without-r3f) · [Headless Runtime guide](/threejs-debug-view/guides/headless-runtime/)
+[Install without R3F](/threejs-debug-view/guides/quick-start/#install-without-r3f) · [Headless Runtime](/threejs-debug-view/guides/headless-runtime/)
 
 ## With R3F
 
-The `/r3f` entrypoint adds `DebugViewLayer`, Leva controls, and DOM overlays for labels and legends.
+Import from **`threejs-debug-view/r3f`** for a batteries-included overlay: `DebugViewLayer`, Leva controls, and DOM labels/legends inside a `<Canvas>`.
 
 ```tsx
 import { DebugViewLayer } from "threejs-debug-view/r3f"
 
-<DebugViewLayer />
+function DebugLayer() {
+  if (!import.meta.env.DEV) return null
+  return <DebugViewLayer />
+}
 ```
 
-That mounts the overlay, wires Leva on `document.body`, and registers built-in debug sources — no separate `<Leva />` import. See [Batteries Included](/threejs-debug-view/guides/batteries-included/) and [Quick Start — R3F](/threejs-debug-view/guides/quick-start/#install-with-r3f).
+[Install with R3F](/threejs-debug-view/guides/quick-start/#install-with-r3f) · [Batteries Included](/threejs-debug-view/guides/batteries-included/)
 
-Keep the overlay behind your app's dev flag unless you intentionally publish a debug surface.
+Keep debug views behind a dev flag unless you intentionally expose them in production.
 
 ## Live demo
 
-Use the controls in the top-right panel to switch views, layouts, opacity, and pane count. On the **Shader Complexity** view, click the viewport to sample a pixel and align the legend marker with what you clicked.
+Use the panel to switch views, layouts, and pane assignments. On **Shader Complexity**, click the viewport to sample a pixel and move the legend marker.
 
 [Open the demo in a new tab](/threejs-debug-view/demo/)
 
@@ -57,15 +61,13 @@ Use the controls in the top-right panel to switch views, layouts, opacity, and p
 />
 
 :::note
-The demo needs browser WebGPU support. When native WebGPU is unavailable, the app blocks startup instead of presenting a WebGL2 renderer as a valid debug backend.
+The demo requires browser WebGPU support. When native WebGPU is unavailable, the app stops instead of falling back to WebGL.
 :::
 
 ## What it does
 
-- **Built-in sources** for beauty, normals, depth, albedo, roughness, AO, opacity, emissive, wireframe, lighting-only, reflection-only, overlap, and shader cost.
-- **Render layouts** for single, overlay, split, diagonal breakdown, row, column, and grid presentations.
-- **Explicit pane assignments** for fixed views, labels, per-pane cameras, and predictable resolution scaling.
-- **Reusable runtime pipelines** for common material-channel switching without material mutation.
-- **Custom TSL views** for shader-specific inspection without forking the built-in source list.
-- **R3F adapter** for mounting the overlay and optional Leva controls inside a React Three Fiber app.
-
+- **Built-in sources** — beauty, normals, depth, albedo, roughness, AO, opacity, emissive, wireframe, lighting-only, reflection-only, overlap, and shader cost.
+- **Render layouts** — single, overlay, split, diagonal breakdown, row, column, and grid.
+- **Explicit pane assignments** — fixed views, labels, per-pane cameras, and resolution scaling.
+- **Headless runtime** — same WebGPU pipeline without React.
+- **Custom TSL views** — add shader-specific inspection without forking the built-in list.

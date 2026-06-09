@@ -3,14 +3,16 @@ title: Custom Debug Views
 description: Add shader-specific TSL node views with stable render-graph identity.
 ---
 
-For simple shader debugging, provide a custom TSL node directly.
+For simple shader debugging, add a `DebugView` object with a TSL `node`:
 
 ```tsx
 import { float, vec4 } from "three/tsl"
 
-{ label: "Constant", node: float(0.5), mode: "depth", scale: 1 }
-{ label: "Custom Color", node: vec4(1, 0, 0, 1), mode: "passthrough" }
+const constantView = { label: "Constant", node: float(0.5), mode: "depth" as const, scale: 1 }
+const colorView = { label: "Custom Color", node: vec4(1, 0, 0, 1), mode: "passthrough" as const }
 ```
+
+Custom views are registered on the root export; R3F examples below pass them to `DebugViews`.
 
 When React may recreate the node instance between renders, prefer `createCustomDebugView()` with a stable `id`.
 

@@ -3,20 +3,67 @@ title: API Reference
 description: Public types and helpers exposed by the debug view package.
 ---
 
-## `DebugViewLayer`
+## Package entrypoints
 
-Batteries-included R3F component for the default debug overlay and Leva controls.
-Import it from `threejs-debug-view/r3f`.
+| Entrypoint | Use it for |
+| --- | --- |
+| `threejs-debug-view` | Canonical runtime: view definitions, render planning, TSL compositor, headless WebGPU helpers, and public types. |
+| `threejs-debug-view/r3f` | Thin R3F adapter: `DebugViewLayer`, `DebugViews`, bundled Leva shell, and `useDebugViewsControls()`. |
+
+See [Batteries Included](/threejs-debug-view/guides/batteries-included/) for what ships on npm versus the repo demo and docs site.
+
+## Headless runtime
+
+Import from `threejs-debug-view` when your app owns the WebGPU render loop. Full walkthrough: [Headless Runtime](/threejs-debug-view/guides/headless-runtime/).
+
+| API | Use when |
+| --- | --- |
+| `createDebugPipelineRuntime()` | Single compositor output (overlay, breakdown, grid, etc.) |
+| `createDebugViewportRenderer()` | Panes need different `resolutionScale` or per-pane cameras |
+| `requiresViewportRuntime()` | Choosing between the two paths after `createDebugViewportPlan()` |
+
+`createDebugViewportRenderer()` options:
+
+| Option | Default | Notes |
+| --- | --- | --- |
+| `overlayOpacity` | `1` | Per-pane opacity. Viewport cells are opaque single-view passes, not compositor overlay blends. |
+| `dividerStyle` | — | Forwarded to uniforms only; TSL dividers are not drawn between scissor panes. |
+
+Pane rects are cached when the viewport renderer is constructed. Rebuild when the plan changes.
+
+### Planning and uniforms
+
+- `resolveDebugViewLayout()` — normalize layout presets into rows, columns, and slots
+- `createDebugRenderPlan()` — pass and pipeline view selection for a layout
+- `createDebugPipelineRuntimeKey()` — stable rebuild key for runtime caches
+- `createDebugViewportPlan()` / `createDebugViewportRenderGraphPlan()` — multi-pane viewport graphs
+- `createDebugViewUniforms()` / `updateDebugViewUniforms()` — TSL uniform state
+- `createDebugViewportLabels()` / `createDebugViewportRects()` — viewport presentation helpers
+- `readHeatmapCostFromCanvas()` — shader-cost pixel sampling
+
+### Controls (React-free)
+
+The root export includes layout/pane helpers and the `DebugViewsOptions` type for custom UI:
+
+- `DebugViewsOptions`, `DebugViewsControlValues`
+- `createPaneAssignmentsKey()`, `createViewportViews()`, `getVisiblePaneCount()`, `getVisiblePaneCountForLayout()`
+- `isPaneAssignmentLayout()`, `usesPaneAssignments()`
+
+## R3F components
+
+Import from `threejs-debug-view/r3f`.
+
+### `DebugViewLayer`
+
+Batteries-included overlay with default views and Leva controls.
 
 ```tsx
 <DebugViewLayer />
 ```
 
-Use this for quick integration. Use `DebugViews` when your app owns the controls, layout state, custom view list, or viewport assignments.
+Use `DebugViews` when your app owns controls, layout state, custom views, or viewport assignments.
 
-`DebugViewLayer` mounts the Leva panel on `document.body` by default (outside the R3F tree) so the panel appears without a second import. Set `showLeva={false}` when you want to mount `DebugViewLeva` yourself elsewhere in your app shell.
-
-Important props:
+`DebugViewLayer` mounts Leva on `document.body` by default. Set `showLeva={false}` when mounting `DebugViewLeva` elsewhere.
 
 | Prop | Purpose |
 | --- | --- |
@@ -24,32 +71,25 @@ Important props:
 | `viewLabels` | Optional labels passed to the bundled Leva controls. |
 | `maxPaneCount` | Upper bound for panes, rows, and columns in the controls. |
 | `showEnabledControl` | Shows the Leva `Enabled` toggle. Defaults to `true`. The demo sets this to `false`. |
-| `showLeva` | Mounts the bundled Leva control panel on `document.body`. Defaults to `true`. Set to `false` when mounting `DebugViewLeva` yourself or for capture-only flows. |
+| `showLeva` | Mounts the bundled Leva panel on `document.body`. Defaults to `true`. |
 | `showLabels` | Overrides the Leva viewport-label toggle. |
 | `showLegends` | Overrides the Leva diagnostic-legend toggle. |
 | `layout` | Overrides the Leva layout preset (for example `breakdown`). |
 | `diagonalAngle` | Overrides the Leva diagonal angle for `split-diagonal` and `breakdown`. |
 | `viewportViews` | Overrides Leva pane assignments with fixed `DebugViewportView` entries. |
 
-## `DebugViewLeva`
+### `DebugViewLeva`
 
-Bundled Leva panel for the debug overlay controls. Import it from `threejs-debug-view/r3f`.
+Bundled Leva panel for debug overlay controls. Mount it yourself when the panel should live in a specific place in your app shell while sharing the same Leva store as `useDebugViewsControls`.
 
-`DebugViewLayer` mounts this automatically unless you pass `showLeva={false}`. Mount it yourself when the panel should live in a specific place in your app shell while still sharing the same Leva store as `useDebugViewsControls`. Both `DebugViewLayer` and `DebugViewLeva` portal the panel to `document.body` so Leva never enters the R3F reconciler.
+### `DebugViews`
 
-## `DebugViews`
-
-R3F component for presenting debug views inside a React Three Fiber `<Canvas>`.
-Import it from `threejs-debug-view/r3f`.
-
-The root package export stays React-free. Use it for core helpers, built-in view definitions, render planning, headless WebGPU runtime, and public types. See [Headless Runtime](/threejs-debug-view/guides/headless-runtime/).
-
-Important props:
+R3F component for presenting debug views inside a `<Canvas>`.
 
 | Prop | Purpose |
 | --- | --- |
 | `views` | Registered debug views. |
-| `activeView` | Selected view for single/overlay flows. |
+| `activeView` | Selected view index for single/overlay flows. |
 | `layout` | Layout preset or layout config. |
 | `paneCount` | Number of visible panes for row, column, and grid layouts. |
 | `diagonalAngle` | Angle in degrees for `split-diagonal` and `breakdown`. `breakdown` defaults to `25` degrees. |
@@ -63,9 +103,17 @@ Important props:
 | `edgeColor` | Silver rim at divider edges as RGB `[0–1, 0–1, 0–1]`. |
 | `coreColor` | Center fill inside dividers as RGB `[0–1, 0–1, 0–1]`. |
 
-Use this mental model when configuring panes: `layout` decides the arrangement, `paneCount` decides how many panes are visible, and `viewportViews` decides what each explicit pane renders. Simple pane assignments use the composed path; per-pane cameras and `resolutionScale` use the viewport/scissor path.
+`layout` decides the arrangement, `paneCount` decides how many panes are visible, and `viewportViews` decides what each explicit pane renders. Simple pane assignments use the compositor path; per-pane cameras and `resolutionScale` use the viewport/scissor path.
 
-## `DebugView`
+### `useDebugViewsControls()`
+
+Returns Leva-backed control state to spread onto `DebugViews`. See [Quick Start — bring your own controls](/threejs-debug-view/guides/quick-start/#bring-your-own-controls-r3f).
+
+Also exported from `/r3f`: `mountDebugViewLeva`, `DEBUG_VIEW_LEVA_THEME`.
+
+## Types
+
+### `DebugView`
 
 ```ts
 interface DebugView {
@@ -79,7 +127,7 @@ interface DebugView {
 }
 ```
 
-## `DebugViewportView`
+### `DebugViewportView`
 
 ```ts
 interface DebugViewportView {
@@ -92,7 +140,7 @@ interface DebugViewportView {
 
 `resolutionScale` is normalized to `1`, `0.5`, or `0.25`.
 
-## Built-in Sources
+## Built-in sources
 
 Built-in `DebugViewSource` values:
 
@@ -116,7 +164,7 @@ Built-in `DebugViewSource` values:
 
 `shaderCost` is not a native GPU instruction counter. Render-pass timing and overlap diagnostics are separate signals, not ALU/TEX/occupancy data.
 
-## Custom Views
+## Custom views
 
 Use `createCustomDebugView()` when a custom TSL node may be recreated by React but should keep a stable logical identity:
 
@@ -129,59 +177,11 @@ const fresnel = createCustomDebugView({
 })
 ```
 
-The compose runtime rebuilds when a custom node instance changes. The viewport render graph uses `id` in stable pass keys.
+The compositor runtime rebuilds when a custom node instance changes. The viewport render graph uses `id` in stable pass keys.
 
-## Package Shape
+## Helper index
 
-The package has two public entrypoints:
-
-| Entrypoint | Use it for |
-| --- | --- |
-| `threejs-debug-view` | Canonical runtime: planning, TSL compositor, `createDebugRenderPlan`, `createDebugPipelineRuntime`, `createDebugViewportRenderer`, layout/pane helpers, and `DebugViewsOptions` types. |
-| `threejs-debug-view/r3f` | Thin adapter: `DebugViewLayer`, `DebugViews`, bundled Leva shell (`DebugViewLeva`, `mountDebugViewLeva`), and `useDebugViewsControls()`. |
-
-See [Batteries Included](/threejs-debug-view/guides/batteries-included/) for what ships on npm versus what stays in the repo demo and docs site.
-
-The repository demo and docs are separate from the package source:
-
-- `components/debug-views/` contains package source.
-- `debug-pipeline-runtime.ts` — single-viewport `RenderPipeline` factory.
-- `debug-viewport-renderer.ts` — multi-pane scissor/viewport orchestration (restores GL state after each frame).
-- `debug-viewport-plan.ts` — pane assignments, cells, and `requiresViewportRuntime()`.
-- `src/` contains the Vite demo app.
-- `packages/docs/` contains the Astro documentation site.
-
-## Headless runtime (root export)
-
-Import from `threejs-debug-view` when your app owns the WebGPU render loop:
-
-| API | Use when |
-| --- | --- |
-| `createDebugPipelineRuntime()` | Single compositor output (overlay, breakdown, grid, etc.) |
-| `createDebugViewportRenderer()` | Panes need different `resolutionScale` or per-pane cameras |
-| `requiresViewportRuntime()` | Choosing between the two paths after `createDebugViewportPlan()` |
-
-`createDebugViewportRenderer()` options:
-
-| Option | Default | Notes |
-| --- | --- | --- |
-| `overlayOpacity` | `1` | Per-pane opacity. Viewport cells are opaque single-view passes, not compositor overlay blends. |
-| `dividerStyle` | — | Forwarded to uniforms only; TSL dividers are not drawn between scissor panes. |
-
-Pane rects from `createDebugViewportRects()` are cached when the renderer is constructed. Rebuild the renderer when the plan changes.
-
-Core helpers:
-
-- `createDebugRenderPlan()` — pass and pipeline view selection for a layout
-- `createDebugPipelineRuntimeKey()` — stable rebuild key for runtime caches
-- `createDebugViewUniforms()` / `updateDebugViewUniforms()` — TSL uniform state
-- `readHeatmapCostFromCanvas()` — shader-cost pixel sampling
-- `DebugViewsOptions` / layout pane helpers from `debug-views-controls`
-
-See [Headless Runtime](/threejs-debug-view/guides/headless-runtime/) for a full example.
-
-## Helpers
-
+- `DEFAULT_DEBUG_VIEWS`, `getDebugViewLabels()`
 - `createCustomDebugView()`
 - `createDebugRenderPlan()`
 - `createDebugPipelineRuntime()`
@@ -189,8 +189,3 @@ See [Headless Runtime](/threejs-debug-view/guides/headless-runtime/) for a full 
 - `createDebugViewportPlan()`
 - `createDebugViewportRenderGraphPlan()`
 - `requiresViewportRuntime()`
-- `createDebugViewportLabels()`
-- `createDebugViewportRects()`
-- `DebugViewLayer` from `threejs-debug-view/r3f`
-- `DebugViewLeva`, `mountDebugViewLeva`, and `DEBUG_VIEW_LEVA_THEME` from `threejs-debug-view/r3f`
-- `useDebugViewsControls()` from `threejs-debug-view/r3f`

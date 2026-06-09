@@ -7,7 +7,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "threejs-debug-view",
-      description: "Batteries-included TSL debug views for Three.js WebGPU render pipelines.",
+      description: "TSL debug views for Three.js WebGPU — headless runtime or batteries-included React Three Fiber overlay.",
       logo: {
         src: "./src/assets/logo.svg",
         alt: "threejs-debug-view logo",
@@ -28,7 +28,13 @@ export default defineConfig({
       sidebar: [
         {
           label: "Start Here",
-          items: ["index", "guides/quick-start", "guides/batteries-included", "guides/headless-runtime", "guides/render-modes"],
+          items: [
+            "index",
+            "guides/quick-start",
+            "guides/headless-runtime",
+            "guides/batteries-included",
+            "guides/render-modes",
+          ],
         },
         {
           label: "Debug Views",

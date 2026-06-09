@@ -3,8 +3,10 @@ title: Built-in Views
 description: Understand the default debug sources and when each pass runs.
 ---
 
-The built-in views are the default diagnostics exported by `DEFAULT_DEBUG_VIEWS`.
+The built-in views are the default diagnostics exported by `DEFAULT_DEBUG_VIEWS` from the root package.
 Each view is a small render source: the UI chooses a view, the render plan resolves only the required passes, and the compositor presents the result.
+
+Examples on this page use the R3F adapter; the same view list works in a headless loop — see [Headless Runtime](/threejs-debug-view/guides/headless-runtime/).
 
 Try them in the [homepage demo](/threejs-debug-view/).
 

@@ -10,12 +10,16 @@ Use it to find programs/materials that are likely more complex than their neighb
 import { DEFAULT_DEBUG_VIEWS } from "threejs-debug-view"
 import { DebugViews } from "threejs-debug-view/r3f"
 
+const shaderCostIndex = DEFAULT_DEBUG_VIEWS.findIndex((view) => view.source === "shaderCost")
+
 <DebugViews
   views={DEFAULT_DEBUG_VIEWS}
-  activeView="shaderCost"
+  activeView={shaderCostIndex}
   layout="single"
 />
 ```
+
+The same `DEFAULT_DEBUG_VIEWS` list and `shaderCost` source work from the root export in a headless loop — see [Headless Runtime](/threejs-debug-view/guides/headless-runtime/).
 
 ## Reading the colors
 
