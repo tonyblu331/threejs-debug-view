@@ -1,11 +1,11 @@
 ---
 title: Quick Start
-description: Install and integrate debug views with or without React Three Fiber.
+description: Install and integrate the native runtime, or add the optional R3F adapter.
 ---
 
-Both paths use the same WebGPU + TSL runtime. Only the UI layer differs: headless helpers from the root export, or batteries-included R3F with optional Leva and DOM labels/legends.
+Both paths use the same WebGPU + TSL runtime. Start with the **native** root export; add **R3F** only when you want React wiring, Leva, and DOM labels/legends.
 
-## Install without R3F
+## Native
 
 For a vanilla Three.js WebGPU app:
 
@@ -13,7 +13,7 @@ For a vanilla Three.js WebGPU app:
 pnpm add threejs-debug-view three
 ```
 
-Wire the headless runtime into your frame loop:
+Wire the native runtime into your frame loop:
 
 ```ts
 import {
@@ -47,17 +47,17 @@ function animate() {
 }
 ```
 
-Next: [Headless Runtime](/threejs-debug-view/guides/headless-runtime/) for multi-pane layouts, viewport scaling, and `requiresViewportRuntime`.
+Next: [Native Runtime](/threejs-debug-view/guides/headless-runtime/) for multi-pane layouts, viewport scaling, and `requiresViewportRuntime`.
 
-## Install with R3F
+## R3F
 
-For React Three Fiber, add the adapter peers:
+Optional adapter for React Three Fiber — add the peers:
 
 ```bash
 pnpm add threejs-debug-view three react react-dom @react-three/fiber @react-three/drei leva
 ```
 
-## Batteries included (R3F)
+### Batteries included
 
 ```tsx
 import { DebugViewLayer } from "threejs-debug-view/r3f"
@@ -70,9 +70,9 @@ function DebugLayer() {
 
 Mount inside `<Canvas>`. Leva mounts on `document.body` automatically unless you set `showLeva={false}`.
 
-Next: [Batteries Included](/threejs-debug-view/guides/batteries-included/) for Leva placement, props, and what ships on npm.
+Next: [R3F guide](/threejs-debug-view/guides/batteries-included/) for Leva placement, props, and what ships on npm.
 
-## Bring your own controls (R3F)
+### Bring your own controls
 
 ```tsx
 import { DEFAULT_DEBUG_VIEWS, getDebugViewLabels } from "threejs-debug-view"
@@ -85,7 +85,7 @@ const controls = useDebugViewsControls({
 <DebugViews views={DEFAULT_DEBUG_VIEWS} {...controls} />
 ```
 
-## Pin a specific view
+### Pin a specific view
 
 ```tsx
 const emissiveIndex = DEFAULT_DEBUG_VIEWS.findIndex((view) => view.source === "emissive")

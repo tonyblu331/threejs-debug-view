@@ -1,7 +1,9 @@
 ---
 title: Custom Debug Views
-description: Add shader-specific TSL node views with stable render-graph identity.
+description: Add shader-specific TSL node views with stable render-graph identity — native or R3F.
 ---
+
+Custom views register on the **native** root export. Pass the same view list into `createDebugRenderPlan()` or, with the optional **R3F** adapter, into `DebugViews`.
 
 For simple shader debugging, add a `DebugView` object with a TSL `node`:
 
@@ -12,9 +14,42 @@ const constantView = { label: "Constant", node: float(0.5), mode: "depth" as con
 const colorView = { label: "Custom Color", node: vec4(1, 0, 0, 1), mode: "passthrough" as const }
 ```
 
-Custom views are registered on the root export; R3F examples below pass them to `DebugViews`.
-
 When React may recreate the node instance between renders, prefer `createCustomDebugView()` with a stable `id`.
+
+## Native
+
+```ts
+import { float, vec4 } from "three/tsl"
+import {
+  createCustomDebugView,
+  DEFAULT_DEBUG_VIEWS,
+  createDebugRenderPlan,
+  createDebugPipelineRuntime,
+  createDebugViewUniforms,
+  resolveDebugViewLayout,
+} from "threejs-debug-view"
+
+const fresnelView = createCustomDebugView({
+  id: "shader:fresnel",
+  label: "Fresnel",
+  node: vec4(float(1), float(0), float(0), float(1)),
+})
+
+const views = [...DEFAULT_DEBUG_VIEWS, fresnelView]
+const plan = createDebugRenderPlan(views, views.length - 1, resolveDebugViewLayout("single"))
+const runtime = createDebugPipelineRuntime(
+  scene,
+  camera,
+  plan,
+  resolveDebugViewLayout("single"),
+  renderer,
+  createDebugViewUniforms(),
+)
+```
+
+See [Native Runtime](/threejs-debug-view/guides/headless-runtime/) for the full frame loop.
+
+## R3F
 
 ```tsx
 import { float, vec4 } from "three/tsl"

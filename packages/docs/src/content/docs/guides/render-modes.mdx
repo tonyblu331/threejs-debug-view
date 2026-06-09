@@ -1,11 +1,20 @@
 ---
 title: Presentation Routing
-description: Let DebugViews choose composed or viewport rendering from your props.
+description: Choose composed or viewport rendering — native planning first, R3F presentation second.
 ---
 
-`DebugViews` (R3F) chooses the render path from your props. Headless apps use the same rules via `requiresViewportRuntime()` after `createDebugViewportPlan()` — see [Headless Runtime](/threejs-debug-view/guides/headless-runtime/).
+Layout rules are defined on the **native** runtime. The optional **R3F** `DebugViews` component applies the same rules from React props.
 
-## Composed selection
+## Native routing
+
+After `createDebugViewportPlan()`, call `requiresViewportRuntime(viewportPlan)`:
+
+- **`false`** — use `createDebugPipelineRuntime()` (one fullscreen TSL compositor).
+- **`true`** — use `createDebugViewportRenderer()` (per-pane scissor/viewport passes).
+
+See [Native Runtime](/threejs-debug-view/guides/headless-runtime/) for compositor vs viewport tradeoffs.
+
+## R3F composed selection
 
 When you do not provide explicit pane assignments, `DebugViews` renders the selected debug sources and uses one fullscreen TSL compositor for presentation.
 Use it for cheap switching, overlays, and simple layout inspection.
@@ -37,7 +46,7 @@ The repo demo supports a fixed capture preset for presentation screenshots: open
 
 Pane dividers render as thin hairlines with a silver edge gradient over a black core. Tune them with `lineWidth`, `edgeColor`, and `coreColor` on `DebugViews`, or use the bundled Leva **Divider** controls when a multi-pane layout is active.
 
-## Explicit panes
+## R3F explicit panes
 
 When you provide `viewportViews`, `DebugViews` assigns views directly to panes.
 Simple pane assignments still use the composed TSL path. It switches to renderer viewport/scissor panes only when a pane needs a custom camera or `resolutionScale`.

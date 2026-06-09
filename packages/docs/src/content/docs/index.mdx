@@ -1,9 +1,9 @@
 ---
 title: threejs-debug-view
-description: TSL debug views for Three.js WebGPU render pipelines — with or without React Three Fiber.
+description: TSL debug views for Three.js WebGPU render pipelines — native runtime first, optional R3F adapter.
 template: splash
 hero:
-  tagline: Named debug views for Three.js WebGPU — use the headless runtime in your own loop, or drop in one R3F layer with layouts, overlap, and shader cost built in.
+  tagline: Named debug views for Three.js WebGPU — wire the native runtime into your loop, or add the optional R3F adapter for layouts, overlap, and shader cost with Leva and DOM labels.
   image:
     file: ../../assets/logo.svg
     alt: threejs-debug-view logo
@@ -11,7 +11,7 @@ hero:
     - text: Quick Start
       link: /threejs-debug-view/guides/quick-start/
       icon: right-arrow
-    - text: Headless Runtime
+    - text: Native Runtime
       link: /threejs-debug-view/guides/headless-runtime/
       icon: document
     - text: Live Demo
@@ -24,7 +24,7 @@ hero:
 
 `threejs-debug-view` exposes named debug views for the buffers your scene already produces: beauty, normals, depth, material channels, wireframe, lighting-only, reflection-only, overlap, and shader cost.
 
-## Without R3F
+## Native
 
 Import from **`threejs-debug-view`** when you own the WebGPU render loop. You get view definitions, render planning, and runtime helpers such as `createDebugPipelineRuntime` and `createDebugViewportRenderer`. No React, R3F, or Leva required.
 
@@ -60,11 +60,11 @@ function animate() {
 }
 ```
 
-[Install without R3F](/threejs-debug-view/guides/quick-start/#install-without-r3f) · [Headless Runtime](/threejs-debug-view/guides/headless-runtime/)
+[Native install](/threejs-debug-view/guides/quick-start/#native) · [Native Runtime](/threejs-debug-view/guides/headless-runtime/)
 
-## Batteries-included R3F
+## R3F
 
-Import from **`threejs-debug-view/r3f`** for `DebugViewLayer` — built-in views, Leva controls, and DOM labels/legends inside a `<Canvas>`.
+Optional React Three Fiber adapter. Import from **`threejs-debug-view/r3f`** for `DebugViewLayer` — built-in views, Leva controls, and DOM labels/legends inside a `<Canvas>`.
 
 ```tsx
 import { DebugViewLayer } from "threejs-debug-view/r3f"
@@ -75,7 +75,7 @@ function DebugLayer() {
 }
 ```
 
-[Install with R3F](/threejs-debug-view/guides/quick-start/#install-with-r3f) · [Batteries Included](/threejs-debug-view/guides/batteries-included/)
+[R3F install](/threejs-debug-view/guides/quick-start/#r3f) · [R3F guide](/threejs-debug-view/guides/batteries-included/)
 
 Keep debug views behind a dev flag unless you intentionally expose them in production.
 
@@ -123,12 +123,11 @@ See [Built-in Views](/threejs-debug-view/guides/built-in-views/) · [Overlap & l
 
 ## Custom debug view
 
-Add a TSL `node`, or use `createCustomDebugView()` with a stable `id` when React may recreate the node:
+Add a TSL `node`, or use `createCustomDebugView()` with a stable `id` when view instances may be recreated:
 
-```tsx
+```ts
 import { float, vec4 } from "three/tsl"
 import { createCustomDebugView, DEFAULT_DEBUG_VIEWS } from "threejs-debug-view"
-import { DebugViews } from "threejs-debug-view/r3f"
 
 const fresnelView = createCustomDebugView({
   id: "shader:fresnel",
@@ -136,7 +135,8 @@ const fresnelView = createCustomDebugView({
   node: vec4(float(1), float(0), float(0), float(1)),
 })
 
-<DebugViews views={[...DEFAULT_DEBUG_VIEWS, fresnelView]} />
+const views = [...DEFAULT_DEBUG_VIEWS, fresnelView]
+// Pass `views` into createDebugRenderPlan() — or into R3F DebugViews when using the adapter.
 ```
 
 [Custom Debug Views](/threejs-debug-view/guides/custom-debug-views/) · [Presentation routing](/threejs-debug-view/guides/render-modes/)

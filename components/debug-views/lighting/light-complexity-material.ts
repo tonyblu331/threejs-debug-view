@@ -1,28 +1,19 @@
 import { NodeMaterial } from "three/webgpu"
 import { float, Fn, length, positionWorld, uniform, vec3, vec4 } from "three/tsl"
-import {
-  collectCountableLights,
-  DEFAULT_MAX_DISPLAY_LIGHTS,
-  type CountableLightSnapshot,
-} from "./light-classification"
+import { DEFAULT_MAX_DISPLAY_LIGHTS } from "./light-classification"
+import { createLightComplexitySync } from "./light-complexity-sync"
+import type { CountableLightSnapshot } from "./light-classification"
 
 const LIGHT_TYPE_POINT = 0
 const LIGHT_TYPE_SPOT = 1
 const LIGHT_TYPE_RECT = 2
 
-interface LightComplexitySlotUniforms {
-  position: { value: { set: (x: number, y: number, z: number) => void } }
-  range: { value: number }
-  lightType: { value: number }
-  direction: { value: { set: (x: number, y: number, z: number) => void } }
-  angleCos: { value: number }
-  rectRange: { value: number }
-}
-
 export interface LightComplexityHandle {
   material: NodeMaterial
   syncScene: (root: { traverse: (cb: (obj: unknown) => void) => void }) => void
+  syncSceneIfDirty: (root: { traverse: (cb: (obj: unknown) => void) => void }) => boolean
   syncLights: (lights: readonly CountableLightSnapshot[]) => void
+  invalidateScene: () => void
   dispose: () => void
 }
 
@@ -77,15 +68,19 @@ export function createLightComplexityHandle(
     return vec4(count.div(float(maxDisplayLights)), float(0), float(0), float(1))
   })()
 
+  const sync = createLightComplexitySync(
+    slots as Parameters<typeof createLightComplexitySync>[0],
+    maxDisplayLights,
+  )
+
   return {
     material,
-    syncScene(root) {
-      applyCountableLightsToSlots(slots, collectCountableLights(root))
-    },
-    syncLights(lights) {
-      applyCountableLightsToSlots(slots, lights)
-    },
+    syncScene: sync.syncScene,
+    syncSceneIfDirty: sync.syncSceneIfDirty,
+    syncLights: sync.syncLights,
+    invalidateScene: sync.invalidateScene,
     dispose() {
+      sync.dispose()
       material.dispose()
     },
   }
@@ -107,41 +102,4 @@ export function createLightComplexityMaterialFromScene(
   const handle = createLightComplexityHandle(maxDisplayLights)
   handle.syncScene(scene)
   return handle.material
-}
-
-function applyCountableLightsToSlots(
-  slots: readonly LightComplexitySlotUniforms[],
-  lights: readonly CountableLightSnapshot[],
-) {
-  for (let index = 0; index < slots.length; index += 1) {
-    const slot = slots[index]!
-    const light = lights[index]
-
-    if (!light) {
-      slot.range.value = 0
-      continue
-    }
-
-    slot.position.value.set(light.position.x, light.position.y, light.position.z)
-    slot.range.value = light.distance > 0 ? light.distance : 1_000
-
-    if (light.type === "spot" && light.direction && light.angleCos != null) {
-      slot.lightType.value = LIGHT_TYPE_SPOT
-      slot.direction.value.set(light.direction.x, light.direction.y, light.direction.z)
-      slot.angleCos.value = light.angleCos
-      slot.rectRange.value = 0
-      continue
-    }
-
-    if (light.type === "rectArea" && light.width && light.height) {
-      slot.lightType.value = LIGHT_TYPE_RECT
-      slot.rectRange.value = Math.max(light.width, light.height) * 1.5
-      slot.angleCos.value = -1
-      continue
-    }
-
-    slot.lightType.value = LIGHT_TYPE_POINT
-    slot.angleCos.value = -1
-    slot.rectRange.value = 0
-  }
 }

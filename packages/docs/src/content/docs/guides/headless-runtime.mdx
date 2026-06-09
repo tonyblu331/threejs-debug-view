@@ -1,17 +1,17 @@
 ---
-title: Headless Runtime
-description: Run debug views in vanilla Three.js WebGPU apps without React Three Fiber.
+title: Native Runtime
+description: Wire the native runtime into your own WebGPU render loop.
 ---
 
-The root export **`threejs-debug-view`** is the canonical runtime. The **`/r3f`** entrypoint is a thin adapter over the same pipeline.
+The root export **`threejs-debug-view`** is the canonical **native** runtime. The optional **`/r3f`** adapter is a thin layer on top of the same pipeline.
 
-Use this guide when:
+Use the native path when you:
 
-- your app is not React-based
-- you already own the render loop and UI
-- you want full control over layout, overlays, and viewport presentation
+- own the WebGPU render loop and UI
+- want full control over layout, overlays, and viewport presentation
+- do not need React, R3F, or Leva
 
-For install commands, see [Quick Start — without R3F](/threejs-debug-view/guides/quick-start/#install-without-r3f). For batteries-included R3F, see [Batteries Included](/threejs-debug-view/guides/batteries-included/).
+For install commands, see [Quick Start — Native](/threejs-debug-view/guides/quick-start/#native). For the optional adapter, see [R3F](/threejs-debug-view/guides/batteries-included/).
 
 ## Single-view compositor loop
 
@@ -114,7 +114,7 @@ Call `requiresViewportRuntime(viewportPlan)` after planning to choose between th
 
 ## Planning helpers
 
-These exports are React-free and safe to use in tests, tools, or custom engines:
+These native exports are framework-agnostic — safe in tests, tools, or custom engines:
 
 | Helper | Purpose |
 | --- | --- |
@@ -128,6 +128,6 @@ These exports are React-free and safe to use in tests, tools, or custom engines:
 
 ## R3F adapter
 
-`threejs-debug-view/r3f` adds `useFrame` / `useThree` wiring, DOM overlays for labels and legends, and optional Leva controls. It calls the same headless runtime documented here — it does not duplicate the WebGPU pipeline.
+`threejs-debug-view/r3f` adds `useFrame` / `useThree` wiring, DOM overlays for labels and legends, and optional Leva controls. It calls the same native runtime documented here — it does not duplicate the WebGPU pipeline.
 
 See [API Reference](/threejs-debug-view/reference/api/) for R3F prop detail.

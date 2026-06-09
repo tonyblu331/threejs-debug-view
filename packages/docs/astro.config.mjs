@@ -11,7 +11,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "threejs-debug-view",
-      description: "TSL debug views for Three.js WebGPU — headless runtime or batteries-included R3F.",
+      description: "TSL debug views for Three.js WebGPU — native runtime with optional R3F adapter.",
       logo: {
         src: "./src/assets/logo.svg",
         alt: "threejs-debug-view logo",
@@ -35,8 +35,8 @@ export default defineConfig({
           items: [
             "index",
             "guides/quick-start",
-            "guides/headless-runtime",
-            "guides/batteries-included",
+            { label: "Native Runtime", link: "guides/headless-runtime/" },
+            { label: "R3F", link: "guides/batteries-included/" },
             "guides/render-modes",
           ],
         },

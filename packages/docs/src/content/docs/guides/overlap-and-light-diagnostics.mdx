@@ -3,7 +3,7 @@ title: Overlap & Light Diagnostics
 description: Layer overlap and light overlap on the default WebGPU forward renderer.
 ---
 
-Three fill-pressure families mirror Unreal optimization view modes. They stay orthogonal to **Shader Complexity** (`shaderCost`).
+Three fill-pressure families mirror Unreal optimization view modes. They stay orthogonal to **Shader Complexity** (`shaderCost`). Enable them from the **native** runtime via `createDebugRenderPlan()` flags, or from the optional **R3F** demo and `DebugViews` controls.
 
 | Source | Label | Question |
 | --- | --- | --- |
@@ -19,7 +19,7 @@ v1 counts **contributors only**:
 - **Does not count:** opaque solids (cliff, ground, rocks). They write depth in a prepass and occlude contributors behind them.
 - **Pipeline:** opaque depth prepass → `ONE ONE` blend counter → heatmap. R channel stores `count / 16`.
 
-Legend: `0 layers` → `8+ layers`. Click the viewport in `DebugViewLayer` to sample integer layers from the pass buffer (single-view compositor path).
+Legend: `none` → `heavy`. In the R3F demo, select **Overlap** and use the overlap legend ramp.
 
 ```text
 ?scene=overdraw&debugView=overdraw
@@ -71,7 +71,7 @@ Social capture preset for overlap breakdown screenshots:
 
 Open the preset in the running demo (`pnpm dev`) with a WebGPU-capable browser.
 
-## Headless runtime
+## Native runtime
 
 Pass-backed flags from `createDebugRenderPlan()`:
 
@@ -79,9 +79,12 @@ Pass-backed flags from `createDebugRenderPlan()`:
 - `usesOverdrawVisualPass` — additive approx (optional)
 - `usesLightComplexityPass` — light overlap (v1 analytic)
 
-`createDebugPipelineRuntime()` exposes `readOverdrawLayerAt(pixelX, pixelY)` when measured overlap is active.
+Plan overlap passes with `usesOverdrawPass`, `usesOverdrawVisualPass`, and `usesLightComplexityPass` from `createDebugRenderPlan()`.
 
 ## Related
+
+- [Native Runtime](/threejs-debug-view/guides/headless-runtime/)
+- [R3F](/threejs-debug-view/guides/batteries-included/)
 
 - [Built-in Views](/threejs-debug-view/guides/built-in-views/)
 - [Shader Cost Heatmap](/threejs-debug-view/guides/shader-cost-heatmap/) — separate signal from overlap

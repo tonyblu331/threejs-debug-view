@@ -1,15 +1,15 @@
 ---
-title: Batteries Included (R3F)
-description: Batteries-included R3F — built-in views, Leva controls, and DOM labels without wiring passes yourself.
+title: R3F
+description: Optional R3F adapter — built-in views, Leva controls, and DOM labels without wiring passes yourself.
 ---
 
 import logo from "../../../assets/logo.svg"
 
 <img src={logo.src} alt="" width="72" height="72" />
 
-This page covers the **`threejs-debug-view/r3f`** entrypoint only.
+This page covers the optional **`threejs-debug-view/r3f`** adapter only.
 
-For a vanilla WebGPU app without React, use the [headless runtime](/threejs-debug-view/guides/headless-runtime/) instead. Install steps for both paths live in [Quick Start](/threejs-debug-view/guides/quick-start/).
+The native runtime is the main path — see [Native Runtime](/threejs-debug-view/guides/headless-runtime/). Install steps for both paths live in [Quick Start](/threejs-debug-view/guides/quick-start/).
 
 ## One-component integration
 
@@ -28,7 +28,7 @@ Mount `DebugLayer` inside your `<Canvas>`. You do not need a separate `<Leva />`
 | --- | --- |
 | Built-in views | Beauty, normals, depth, material channels, wireframe, lighting-only, reflection-only, measured overlap, light overlap, and shader cost |
 | Leva controls | View picker, layouts, pane assignments, labels, blend opacity, diagonal angle |
-| Runtime | Same WebGPU MRT passes and TSL compositor as the headless export |
+| Runtime | Same WebGPU MRT passes and TSL compositor as the native export |
 | DOM labels & legends | Viewport labels and diagnostic legends |
 
 ## Custom Leva placement
@@ -49,7 +49,7 @@ import { DebugViewLayer, DebugViewLeva } from "threejs-debug-view/r3f"
 
 ## Bring your own controls
 
-When your app owns UI state, use `DebugViews` with `useDebugViewsControls` instead of `DebugViewLayer`. See [Quick Start — bring your own controls](/threejs-debug-view/guides/quick-start/#bring-your-own-controls-r3f).
+When your app owns UI state, use `DebugViews` with `useDebugViewsControls` instead of `DebugViewLayer`. See [Quick Start — bring your own controls](/threejs-debug-view/guides/quick-start/#bring-your-own-controls).
 
 Useful props:
 
@@ -68,9 +68,9 @@ Useful props:
 
 | Goal | Use |
 | --- | --- |
+| Native WebGPU loop | root `threejs-debug-view` — [Native Runtime](/threejs-debug-view/guides/headless-runtime/) |
 | Fastest R3F integration | `DebugViewLayer` |
-| Custom app UI | `DebugViews` + `useDebugViewsControls` |
-| No React | root `threejs-debug-view` — [Headless Runtime](/threejs-debug-view/guides/headless-runtime/) |
+| Custom R3F UI | `DebugViews` + `useDebugViewsControls` |
 | Try layouts interactively | [Live demo](/threejs-debug-view/demo/) |
 
 ## Demo app

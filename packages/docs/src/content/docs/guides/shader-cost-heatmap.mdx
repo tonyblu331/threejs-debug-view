@@ -6,6 +6,33 @@ description: Use the shader-cost view to spot expensive program/material signals
 The `shaderCost` view renders the scene with temporary bucketed override materials, then colorizes the result as a heatmap.
 Use it to find programs/materials that are likely more complex than their neighbors before you reach for a dedicated GPU profiler.
 
+## Native
+
+```ts
+import {
+  DEFAULT_DEBUG_VIEWS,
+  createDebugRenderPlan,
+  createDebugPipelineRuntime,
+  createDebugViewUniforms,
+  resolveDebugViewLayout,
+  updateDebugViewUniforms,
+} from "threejs-debug-view"
+
+const shaderCostIndex = DEFAULT_DEBUG_VIEWS.findIndex((view) => view.source === "shaderCost")
+const layout = resolveDebugViewLayout("single")
+const plan = createDebugRenderPlan(DEFAULT_DEBUG_VIEWS, shaderCostIndex, layout)
+const uniforms = createDebugViewUniforms()
+const runtime = createDebugPipelineRuntime(scene, camera, plan, layout, renderer, uniforms)
+
+// Each frame:
+updateDebugViewUniforms(uniforms, plan.activePipelineView, layout, plan.pipelineViews.length, 1)
+runtime.pipeline.render()
+```
+
+Full walkthrough: [Native Runtime](/threejs-debug-view/guides/headless-runtime/). Sample pixels with `readHeatmapCostFromCanvas()` from the root export.
+
+## R3F
+
 ```tsx
 import { DEFAULT_DEBUG_VIEWS } from "threejs-debug-view"
 import { DebugViews } from "threejs-debug-view/r3f"
@@ -18,8 +45,6 @@ const shaderCostIndex = DEFAULT_DEBUG_VIEWS.findIndex((view) => view.source === 
   layout="single"
 />
 ```
-
-The same `DEFAULT_DEBUG_VIEWS` list and `shaderCost` source work from the root export in a headless loop — see [Headless Runtime](/threejs-debug-view/guides/headless-runtime/).
 
 ## Reading the colors
 
@@ -37,7 +62,7 @@ The heatmap is normalized from `0` to `1`:
 
 ## Click-to-sample inspector
 
-When the active layout includes `shaderCost`, `DebugViewLayer` shows a legend ramp and a prompt to click the viewport.
+When the active layout includes `shaderCost`, the R3F `DebugViewLayer` shows a legend ramp and a prompt to click the viewport.
 
 - Click a pixel to place a centered crosshair on that screen point.
 - The legend marker moves to the decoded heatmap cost for that pixel.
@@ -59,7 +84,7 @@ The scorer infers active program/material signals into shader-unit buckets that 
 The raw signal count is normalized against a stable global signal scale and mapped into a bounded bucket material set.
 That keeps the override pass predictable instead of creating one material per mesh.
 
-## Explicit panes
+## R3F explicit panes
 
 `shaderCost` can also be assigned to a viewport pane:
 

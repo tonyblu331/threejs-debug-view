@@ -3,7 +3,35 @@ title: Viewport Labels
 description: Label panes in split, row, column, grid, diagonal, and explicit viewport layouts.
 ---
 
-R3F examples below; label plans use the same `createDebugViewportLabels()` helpers from the root export in headless apps.
+Label geometry comes from the **native** `createDebugViewportLabels()` helper. The optional **R3F** adapter renders those labels in DOM space when you set `showLabels` on `DebugViews`.
+
+## Native
+
+```ts
+import {
+  DEFAULT_DEBUG_VIEWS,
+  createDebugViewportLabels,
+  createDebugViewportPlan,
+  resolveDebugViewLayout,
+} from "threejs-debug-view"
+
+const layout = resolveDebugViewLayout("row")
+const viewportPlan = createDebugViewportPlan({
+  views: DEFAULT_DEBUG_VIEWS,
+  layout,
+  paneCount: 4,
+})
+
+const labels = createDebugViewportLabels(
+  viewportPlan.pipelineViews,
+  layout,
+  ["Beauty", "Normals", "Depth", "Albedo"],
+)
+```
+
+Use the returned rects and strings in your own UI layer.
+
+## R3F
 
 Enable labels with `showLabels`.
 

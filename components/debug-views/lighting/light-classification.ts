@@ -44,8 +44,10 @@ const positionScratch = new Vector3()
 const targetScratch = new Vector3()
 const directionScratch = new Vector3()
 
-export function collectCountableLights(root: { traverse: (cb: (obj: unknown) => void) => void }) {
-  const lights: CountableLightSnapshot[] = []
+export function discoverCountableLights(
+  root: { traverse: (cb: (obj: unknown) => void) => void },
+): Array<PointLight | SpotLight | RectAreaLight> {
+  const lights: Array<PointLight | SpotLight | RectAreaLight> = []
 
   root.traverse((object) => {
     const light = object as Light
@@ -53,6 +55,16 @@ export function collectCountableLights(root: { traverse: (cb: (obj: unknown) => 
       return
     }
 
+    lights.push(light)
+  })
+
+  return lights
+}
+
+export function collectCountableLights(root: { traverse: (cb: (obj: unknown) => void) => void }) {
+  const lights: CountableLightSnapshot[] = []
+
+  for (const light of discoverCountableLights(root)) {
     light.getWorldPosition(positionScratch)
 
     if ((light as PointLight).isPointLight) {
@@ -63,7 +75,7 @@ export function collectCountableLights(root: { traverse: (cb: (obj: unknown) => 
         distance: point.distance,
         decay: point.decay,
       })
-      return
+      continue
     }
 
     if ((light as SpotLight).isSpotLight) {
@@ -79,7 +91,7 @@ export function collectCountableLights(root: { traverse: (cb: (obj: unknown) => 
         angleCos: Math.cos(spot.angle * 0.5),
         direction: { x: directionScratch.x, y: directionScratch.y, z: directionScratch.z },
       })
-      return
+      continue
     }
 
     const rect = light as RectAreaLight
@@ -91,7 +103,7 @@ export function collectCountableLights(root: { traverse: (cb: (obj: unknown) => 
       width: rect.width,
       height: rect.height,
     })
-  })
+  }
 
   return lights
 }

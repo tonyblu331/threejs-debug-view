@@ -3,7 +3,9 @@ title: Performance Model
 description: Understand which debug views are cheap, which views add passes, and how material channels stay honest.
 ---
 
-Debug views should be cheap enough to leave mounted while you work. The package keeps that true by separating material-channel views from pass-backed views.
+Debug views should be cheap enough to leave mounted while you work. The **native** runtime keeps that true by separating material-channel views from pass-backed views — the optional **R3F** adapter uses the same pass model.
+
+See [Native Runtime](/threejs-debug-view/guides/headless-runtime/) for compositor vs viewport paths.
 
 ## Cheap material channels
 

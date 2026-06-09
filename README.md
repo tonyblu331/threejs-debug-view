@@ -7,7 +7,7 @@
 <p align="center"><strong>Debug views for Three.js WebGPU + TSL render pipelines.</strong></p>
 
 <p align="center">
-  React-free headless runtime, or batteries-included R3F via <code>DebugViewLayer</code>.
+  Native WebGPU runtime first; optional R3F adapter via <code>DebugViewLayer</code>.
 </p>
 
 [![npm version](https://img.shields.io/npm/v/threejs-debug-view.svg)](https://www.npmjs.com/package/threejs-debug-view)
@@ -18,29 +18,55 @@
 
 ## Install
 
-**Headless (no React):**
+**Native:**
 
 ```bash
 pnpm add threejs-debug-view three
 ```
 
-**Batteries-included R3F:**
+**R3F** (optional adapter):
 
 ```bash
 pnpm add threejs-debug-view three react react-dom @react-three/fiber @react-three/drei leva
 ```
 
-The root export is React-free. `/r3f` needs the peers above.
+The root export is the main path. `/r3f` needs the peers above.
 
 ## Get started
 
 | Path | Import | Use when |
 | --- | --- | --- |
-| Headless | `threejs-debug-view` | You own the WebGPU render loop. |
-| Batteries-included R3F | `threejs-debug-view/r3f` → `DebugViewLayer` | Built-in views, layouts, and Leva with minimal setup. |
-| Controlled | `threejs-debug-view/r3f` → `DebugViews` + `useDebugViewsControls` | Your app owns UI state or part of the surface. |
+| Native | `threejs-debug-view` | You own the WebGPU render loop. |
+| R3F | `threejs-debug-view/r3f` → `DebugViewLayer` | Optional adapter with built-in views, layouts, and Leva. |
+| Controlled R3F | `threejs-debug-view/r3f` → `DebugViews` + `useDebugViewsControls` | Your app owns UI state or part of the surface. |
 
-Guides: [Quick Start](https://tonyblu331.github.io/threejs-debug-view/guides/quick-start/) · [Headless Runtime](https://tonyblu331.github.io/threejs-debug-view/guides/headless-runtime/) · [Batteries Included](https://tonyblu331.github.io/threejs-debug-view/guides/batteries-included/)
+Guides: [Quick Start](https://tonyblu331.github.io/threejs-debug-view/guides/quick-start/) · [Native Runtime](https://tonyblu331.github.io/threejs-debug-view/guides/headless-runtime/) · [R3F](https://tonyblu331.github.io/threejs-debug-view/guides/batteries-included/)
+
+**Native** — wire into your frame loop:
+
+```ts
+import {
+  DEFAULT_DEBUG_VIEWS,
+  createDebugRenderPlan,
+  createDebugPipelineRuntime,
+  createDebugViewUniforms,
+  resolveDebugViewLayout,
+  updateDebugViewUniforms,
+} from "threejs-debug-view"
+
+const layout = resolveDebugViewLayout("single")
+const plan = createDebugRenderPlan(DEFAULT_DEBUG_VIEWS, 0, layout)
+const uniforms = createDebugViewUniforms()
+const runtime = createDebugPipelineRuntime(scene, camera, plan, layout, renderer, uniforms)
+
+function animate() {
+  updateDebugViewUniforms(uniforms, plan.activePipelineView, layout, plan.pipelineViews.length, 1)
+  runtime.pipeline.render()
+  requestAnimationFrame(animate)
+}
+```
+
+**R3F** (optional) — drop in inside `<Canvas>`:
 
 ```tsx
 import { DebugViewLayer } from "threejs-debug-view/r3f"
@@ -129,7 +155,7 @@ For WebGPU or demo changes, run `pnpm test:e2e` and smoke-test `pnpm dev` in a b
 ## Project shape
 
 - `components/debug-views/` — library source
-- `threejs-debug-view` — view definitions, render planning, TSL helpers, headless runtime
+- `threejs-debug-view` — view definitions, render planning, TSL helpers, native runtime
 - `threejs-debug-view/r3f` — `DebugViewLayer`, `DebugViews`, Leva controls
 - `src/` — local demo (not on npm)
 - `packages/docs/` — Starlight docs + hosted demo build output (not on npm)

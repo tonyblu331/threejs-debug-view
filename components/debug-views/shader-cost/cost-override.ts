@@ -8,6 +8,10 @@ import {
   type Scene,
 } from "three"
 import { createMaterialCostCache, type MaterialCostCache } from "./material-cost"
+import {
+  createMeshOverrideSession,
+  type MeshOverrideSessionEntry,
+} from "../shared/mesh-override-session"
 
 export const DEFAULT_SHADER_COST_BUCKET_COUNT = 16
 
@@ -17,23 +21,27 @@ export interface ShaderCostOverrideOptions {
 }
 
 export interface ShaderCostOverride {
-  apply(scene: Scene | Object3D): ShaderCostRestore
-  dispose(): void
+  prepare: (scene: Scene | Object3D) => void
+  apply: (scene: Scene | Object3D) => ShaderCostRestore
+  invalidate: () => void
+  dispose: () => void
   readonly bucketCount: number
   readonly materials: readonly MeshBasicMaterial[]
 }
 
 export interface ShaderCostRestore {
-  restore(): void
+  restore: () => void
   readonly replacements: number
 }
 
 type MeshMaterial = Material | Material[]
 type CoverageMaterialCache = Map<string, MeshBasicMaterial>
+type SceneRoot = Scene | Object3D
 
-interface OriginalMaterialEntry {
+interface ShaderCostCacheEntry extends MeshOverrideSessionEntry {
   mesh: Mesh
-  material: MeshMaterial
+  originalMaterial: MeshMaterial
+  overrideMaterial: MeshMaterial
 }
 
 export function createShaderCostOverride(
@@ -44,11 +52,53 @@ export function createShaderCostOverride(
   const materials = createShaderCostBucketMaterials(bucketCount)
   const coverageMaterials: CoverageMaterialCache = new Map()
 
-  return {
-    apply(scene) {
-      return applyShaderCostOverride(scene, materials, cache, coverageMaterials)
+  const session = createMeshOverrideSession<ShaderCostCacheEntry>({
+    rebuild(scene) {
+      const entries: ShaderCostCacheEntry[] = []
+
+      scene.traverse((object) => {
+        if (!isMeshWithMaterial(object)) return
+
+        entries.push({
+          parent: object.parent,
+          mesh: object,
+          originalMaterial: object.material,
+          overrideMaterial: replaceMaterial(object.material, materials, cache, coverageMaterials),
+        })
+      })
+
+      return entries
     },
+    refreshEntry(entry) {
+      if (
+        entry.mesh.material === entry.originalMaterial
+        || entry.mesh.material === entry.overrideMaterial
+      ) {
+        return
+      }
+
+      entry.originalMaterial = entry.mesh.material
+      entry.overrideMaterial = replaceMaterial(
+        entry.mesh.material,
+        materials,
+        cache,
+        coverageMaterials,
+      )
+    },
+    applyEntry(entry) {
+      entry.mesh.material = entry.overrideMaterial
+    },
+    restoreEntry(entry) {
+      entry.mesh.material = entry.originalMaterial
+    },
+  })
+
+  return {
+    prepare: session.prepare,
+    apply: session.apply,
+    invalidate: session.invalidate,
     dispose() {
+      session.dispose()
       for (const material of materials) {
         material.dispose()
       }
@@ -89,43 +139,6 @@ export function getShaderCostBucketIndex(
   const normalizedCost = Math.max(0, Math.min(1, cost))
 
   return Math.round(normalizedCost * (normalizedBucketCount - 1))
-}
-
-function applyShaderCostOverride(
-  scene: Scene | Object3D,
-  bucketMaterials: readonly MeshBasicMaterial[],
-  cache: MaterialCostCache,
-  coverageMaterials: CoverageMaterialCache,
-): ShaderCostRestore {
-  const originals: OriginalMaterialEntry[] = []
-
-  scene.traverse((object) => {
-    if (!isMeshWithMaterial(object)) return
-
-    originals.push({
-      mesh: object,
-      material: object.material,
-    })
-
-    object.material = replaceMaterial(object.material, bucketMaterials, cache, coverageMaterials)
-  })
-
-  let restored = false
-
-  return {
-    restore() {
-      if (restored) return
-
-      for (const entry of originals) {
-        entry.mesh.material = entry.material
-      }
-
-      restored = true
-    },
-    get replacements() {
-      return originals.length
-    },
-  }
 }
 
 function replaceMaterial(

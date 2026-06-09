@@ -29,7 +29,7 @@ import {
   createOverdrawOverride,
   type OverdrawOverride,
 } from "./overdraw/overdraw-override"
-import { createLightComplexityMaterialFromScene } from "./lighting/light-complexity-material"
+import { createLightComplexityHandle } from "./lighting/light-complexity-material"
 
 export interface DebugPipelineRuntime {
   pipeline: RenderPipeline
@@ -120,26 +120,30 @@ export function createDebugPipelineRuntime(
   }
 
   const overdrawOverride = plan.usesOverdrawPass ? createOverdrawOverride() : undefined
+  if (overdrawOverride) {
+    overdrawOverride.prepare(scene)
+  }
   const overdrawPass = plan.usesOverdrawPass
     ? createOverdrawPass(scene, camera, resolutionScale, overdrawOverride)
     : undefined
   const shaderCostOverride = plan.usesShaderCostPass ? createShaderCostOverride() : undefined
+  if (shaderCostOverride) {
+    shaderCostOverride.prepare(scene)
+  }
   const shaderCostPass = plan.usesShaderCostPass
     ? createShaderCostPass(scene, camera, resolutionScale, shaderCostOverride)
     : undefined
-  let lightComplexityMaterial = plan.usesLightComplexityPass
-    ? createLightComplexityMaterialFromScene(scene)
+  const lightComplexity = plan.usesLightComplexityPass
+    ? createLightComplexityHandle()
     : undefined
   const lightComplexityPass = plan.usesLightComplexityPass ? pass(scene, camera) : undefined
-  if (lightComplexityPass) {
+  if (lightComplexityPass && lightComplexity) {
     lightComplexityPass.setResolutionScale(resolutionScale)
-    lightComplexityPass.overrideMaterial = lightComplexityMaterial ?? null
+    lightComplexity.syncScene(scene)
+    lightComplexityPass.overrideMaterial = lightComplexity.material
     const renderLightComplexityPass = lightComplexityPass.updateBefore.bind(lightComplexityPass)
     lightComplexityPass.updateBefore = (frame: unknown) => {
-      const nextMaterial = createLightComplexityMaterialFromScene(scene)
-      lightComplexityPass.overrideMaterial = nextMaterial
-      lightComplexityMaterial?.dispose()
-      lightComplexityMaterial = nextMaterial
+      lightComplexity.syncSceneIfDirty(scene)
       return renderLightComplexityPass(frame as Parameters<typeof renderLightComplexityPass>[0])
     }
   }
@@ -187,7 +191,7 @@ export function createDebugPipelineRuntime(
       reflectionOnlyPass?.dispose()
       overdrawPass?.dispose()
       overdrawOverride?.dispose()
-      lightComplexityMaterial?.dispose()
+      lightComplexity?.dispose()
       lightComplexityPass?.dispose()
       shaderCostPass?.dispose()
       shaderCostOverride?.dispose()

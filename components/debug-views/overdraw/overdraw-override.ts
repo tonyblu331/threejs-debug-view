@@ -7,82 +7,92 @@ import {
   type Scene,
   type Texture,
 } from "three"
+import {
+  createMeshOverrideSession,
+  type MeshOverrideSessionEntry,
+} from "../shared/mesh-override-session"
 
 export interface OverdrawOverride {
-  apply(scene: Scene | Object3D): OverdrawRestore
-  dispose(): void
+  prepare: (scene: Scene | Object3D) => void
+  apply: (scene: Scene | Object3D) => OverdrawRestore
+  invalidate: () => void
+  dispose: () => void
 }
 
 export interface OverdrawRestore {
-  restore(): void
+  restore: () => void
   readonly replacements: number
 }
 
 type MeshMaterial = Material | Material[]
+type SceneRoot = Scene | Object3D
 
-interface OriginalMaterialEntry {
+interface OverdrawCacheEntry extends MeshOverrideSessionEntry {
   mesh: Mesh
-  material: MeshMaterial
-  visible: boolean
+  originalMaterial: MeshMaterial
+  originalVisible: boolean
+  overrideMaterial: MeshMaterial
+  targetVisible: boolean
 }
 
 const OPAQUE_KEY = "opaque"
 
 export function createOverdrawOverride(): OverdrawOverride {
   const materials = new Map<string, MeshBasicMaterial>()
+  const session = createMeshOverrideSession<OverdrawCacheEntry>({
+    rebuild(scene) {
+      const entries: OverdrawCacheEntry[] = []
+
+      scene.traverse((object) => {
+        if (!isMeshWithMaterial(object)) return
+
+        const replacement = replaceMaterial(object.material, materials)
+
+        entries.push({
+          parent: object.parent,
+          mesh: object,
+          originalMaterial: object.material,
+          originalVisible: object.visible,
+          overrideMaterial: replacement.material,
+          targetVisible: replacement.contributes,
+        })
+      })
+
+      return entries
+    },
+    refreshEntry(entry) {
+      if (
+        entry.mesh.material === entry.originalMaterial
+        || entry.mesh.material === entry.overrideMaterial
+      ) {
+        return
+      }
+
+      const replacement = replaceMaterial(entry.mesh.material, materials)
+      entry.originalMaterial = entry.mesh.material
+      entry.overrideMaterial = replacement.material
+      entry.targetVisible = replacement.contributes
+    },
+    applyEntry(entry) {
+      entry.mesh.material = entry.overrideMaterial
+      entry.mesh.visible = entry.targetVisible
+    },
+    restoreEntry(entry) {
+      entry.mesh.material = entry.originalMaterial
+      entry.mesh.visible = entry.originalVisible
+    },
+  })
 
   return {
-    apply(scene) {
-      return applyOverdrawOverride(scene, materials)
-    },
+    prepare: session.prepare,
+    apply: session.apply,
+    invalidate: session.invalidate,
     dispose() {
+      session.dispose()
       for (const material of materials.values()) {
         material.dispose()
       }
       materials.clear()
-    },
-  }
-}
-
-function applyOverdrawOverride(
-  scene: Scene | Object3D,
-  materials: Map<string, MeshBasicMaterial>,
-): OverdrawRestore {
-  const originals: OriginalMaterialEntry[] = []
-
-  scene.traverse((object) => {
-    if (!isMeshWithMaterial(object)) return
-
-    originals.push({
-      mesh: object,
-      material: object.material,
-      visible: object.visible,
-    })
-
-    const replacement = replaceMaterial(object.material, materials)
-    if (!replacement.contributes) {
-      object.visible = false
-      return
-    }
-
-    object.material = replacement.material
-  })
-
-  let restored = false
-
-  return {
-    restore() {
-      if (restored) return
-
-      for (const entry of originals) {
-        entry.mesh.material = entry.material
-        entry.mesh.visible = entry.visible
-      }
-
-      restored = true
-    },
-    get replacements() {
-      return originals.length
     },
   }
 }

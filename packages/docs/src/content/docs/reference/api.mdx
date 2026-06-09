@@ -7,14 +7,14 @@ description: Public types and helpers exposed by the debug view package.
 
 | Entrypoint | Use it for |
 | --- | --- |
-| `threejs-debug-view` | Canonical runtime: view definitions, render planning, TSL compositor, headless WebGPU helpers, and public types. |
-| `threejs-debug-view/r3f` | Thin R3F adapter: `DebugViewLayer`, `DebugViews`, bundled Leva shell, and `useDebugViewsControls()`. |
+| `threejs-debug-view` | Native runtime: view definitions, render planning, TSL compositor, WebGPU helpers, and public types. |
+| `threejs-debug-view/r3f` | Optional R3F adapter: `DebugViewLayer`, `DebugViews`, bundled Leva shell, and `useDebugViewsControls()`. |
 
-See [Batteries Included](/threejs-debug-view/guides/batteries-included/) for what ships on npm versus the repo demo and docs site.
+See [R3F](/threejs-debug-view/guides/batteries-included/) for what ships on npm versus the repo demo and docs site.
 
-## Headless runtime
+## Native runtime
 
-Import from `threejs-debug-view` when your app owns the WebGPU render loop. Full walkthrough: [Headless Runtime](/threejs-debug-view/guides/headless-runtime/).
+Import from `threejs-debug-view` when your app owns the WebGPU render loop. Full walkthrough: [Native Runtime](/threejs-debug-view/guides/headless-runtime/).
 
 | API | Use when |
 | --- | --- |
@@ -41,9 +41,9 @@ Pane rects are cached when the viewport renderer is constructed. Rebuild when th
 - `createDebugViewportLabels()` / `createDebugViewportRects()` — viewport presentation helpers
 - `readHeatmapCostFromCanvas()` — shader-cost pixel sampling
 
-### Controls (React-free)
+### Controls (native)
 
-The root export includes layout/pane helpers and the `DebugViewsOptions` type for custom UI:
+The root export includes layout/pane helpers and the `DebugViewsOptions` type for custom native UI:
 
 - `DebugViewsOptions`, `DebugViewsControlValues`
 - `createPaneAssignmentsKey()`, `createViewportViews()`, `getVisiblePaneCount()`, `getVisiblePaneCountForLayout()`
@@ -55,7 +55,7 @@ Import from `threejs-debug-view/r3f`.
 
 ### `DebugViewLayer`
 
-Batteries-included R3F layer with default views and Leva controls.
+Optional R3F adapter layer with default views and Leva controls.
 
 ```tsx
 <DebugViewLayer />
@@ -107,7 +107,7 @@ R3F component for presenting debug views inside a `<Canvas>`.
 
 ### `useDebugViewsControls()`
 
-Returns Leva-backed control state to spread onto `DebugViews`. See [Quick Start — bring your own controls](/threejs-debug-view/guides/quick-start/#bring-your-own-controls-r3f).
+Returns Leva-backed control state to spread onto `DebugViews`. See [Quick Start — bring your own controls](/threejs-debug-view/guides/quick-start/#bring-your-own-controls).
 
 Also exported from `/r3f`: `mountDebugViewLeva`, `DEBUG_VIEW_LEVA_THEME`.
 

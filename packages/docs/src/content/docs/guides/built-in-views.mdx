@@ -6,7 +6,7 @@ description: Understand the default debug sources and when each pass runs.
 The built-in views are the default diagnostics exported by `DEFAULT_DEBUG_VIEWS` from the root package.
 Each view is a small render source: the UI chooses a view, the render plan resolves only the required passes, and the compositor presents the result.
 
-Examples below show both the headless runtime and the R3F adapter; the same `DEFAULT_DEBUG_VIEWS` list works in either path — see [Headless Runtime](/threejs-debug-view/guides/headless-runtime/).
+Examples below show both the native runtime and the optional R3F adapter; the same `DEFAULT_DEBUG_VIEWS` list works in either path — see [Native Runtime](/threejs-debug-view/guides/headless-runtime/).
 
 Try them in the [homepage demo](/threejs-debug-view/).
 
@@ -67,7 +67,7 @@ See [Performance Model](/threejs-debug-view/guides/performance/) for how single-
 `shaderCost` is a shader-cost estimate, not a browser-exposed shader instruction counter. Keep pass timing and overlap diagnostics separate from this view so the UI does not imply native ALU/TEX/occupancy data. Overlap and shader cost each render their own legend when both panes are visible.
 :::
 
-## Headless example
+## Native example
 
 ```ts
 import {
@@ -108,7 +108,7 @@ import { DebugViews } from "threejs-debug-view/r3f"
 />
 ```
 
-## Explicit pane example
+## R3F explicit pane example
 
 Use explicit pane assignments when panes must keep fixed views.
 

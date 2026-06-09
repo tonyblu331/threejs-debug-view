@@ -59,9 +59,10 @@ describe("light complexity material", () => {
     expect(handle.material).toBe(material)
 
     point.position.set(4, 5, 6)
-    handle.syncScene(scene)
-
+    expect(handle.syncSceneIfDirty(scene)).toBe(true)
     expect(handle.material).toBe(material)
+
+    expect(handle.syncSceneIfDirty(scene)).toBe(false)
     handle.dispose()
   })
 })
