@@ -21,11 +21,17 @@ hero:
 
 `threejs-debug-view` gives you named debug views for the buffers your scene already produces: beauty, normals, depth, material channels, wireframe, lighting-only, reflection-only, overlap, and shader cost.
 
-Use the root package for core helpers and TSL view definitions — no React or R3F required. Use `threejs-debug-view/r3f` when you want the batteries-included overlay inside a React Three Fiber `<Canvas>`.
+Import from the **root package** when you own the WebGPU render loop (no React). Import from **`threejs-debug-view/r3f`** when you want a batteries-included overlay inside a React Three Fiber `<Canvas>`.
 
-## Batteries included
+## Without R3F
 
-The `/r3f` entrypoint is the fast path:
+The root export provides view definitions, render planning, and headless WebGPU runtime helpers (`createDebugPipelineRuntime`, `createDebugViewportRenderer`).
+
+[Quick Start — headless install](/threejs-debug-view/guides/quick-start/#install-without-r3f) · [Headless Runtime guide](/threejs-debug-view/guides/headless-runtime/)
+
+## With R3F
+
+The `/r3f` entrypoint adds `DebugViewLayer`, Leva controls, and DOM overlays for labels and legends.
 
 ```tsx
 import { DebugViewLayer } from "threejs-debug-view/r3f"
@@ -33,13 +39,9 @@ import { DebugViewLayer } from "threejs-debug-view/r3f"
 <DebugViewLayer />
 ```
 
-That one component mounts the overlay, wires Leva controls on `document.body` (outside the R3F tree), and registers the built-in debug sources — no separate `<Leva />` import. See [Batteries Included](/threejs-debug-view/guides/batteries-included/) for what ships out of the box, what stays optional, and what never lands on npm.
+That mounts the overlay, wires Leva on `document.body`, and registers built-in debug sources — no separate `<Leva />` import. See [Batteries Included](/threejs-debug-view/guides/batteries-included/) and [Quick Start — R3F](/threejs-debug-view/guides/quick-start/#install-with-r3f).
 
-## R3F adapter
-
-The R3F adapter is the React UI layer. `DebugViewLayer` mounts the default overlay inside your canvas, reads the active R3F renderer, and portals the bundled Leva panel to `document.body`. Use `DebugViews` and `useDebugViewsControls` when your app needs to own control state instead.
-
-Keep it behind your app's dev flag unless you intentionally publish a debug surface.
+Keep the overlay behind your app's dev flag unless you intentionally publish a debug surface.
 
 ## Live demo
 

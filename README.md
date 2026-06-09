@@ -4,22 +4,41 @@
   <img src="assets/logo.svg" alt="threejs-debug-view logo" width="72" height="72" />
 </p>
 
-<p align="center"><strong>Batteries-included debug views for Three.js WebGPU + TSL render pipelines.</strong></p>
+<p align="center"><strong>Debug views for Three.js WebGPU + TSL render pipelines.</strong></p>
 
 <p align="center">
-  Drop in <code>DebugViewLayer</code> for built-in views, Leva controls, and layout presets.<br />
-  Use the React-free root export when you only need planning helpers and TSL runtime pieces.
+  Use the React-free root export in your own render loop, or drop in <code>DebugViewLayer</code> for a batteries-included R3F overlay.
 </p>
 
 [![npm version](https://img.shields.io/npm/v/threejs-debug-view.svg)](https://www.npmjs.com/package/threejs-debug-view)
 [![license](https://img.shields.io/npm/l/threejs-debug-view.svg)](./LICENSE)
 [![library gzip](https://img.shields.io/badge/library_gzip-26_kB-007ec6)](https://github.com/tonyblu331/threejs-debug-view#bundle-size)
 
-Small debug views for Three.js WebGPU + TSL render pipelines.
+## Install
 
-## Batteries included
+**WebGPU app (no React):**
 
-The `/r3f` entrypoint is the fast integration path:
+```bash
+pnpm add threejs-debug-view three
+```
+
+**React Three Fiber:**
+
+```bash
+pnpm add threejs-debug-view three react react-dom @react-three/fiber @react-three/drei leva
+```
+
+The root export is React-free. The `/r3f` adapter needs the R3F and Leva peers above.
+
+## Get started
+
+| Path | Import | Use when |
+| --- | --- | --- |
+| Headless | `threejs-debug-view` | You own the WebGPU render loop. See the [headless runtime guide](https://tonyblu331.github.io/threejs-debug-view/guides/headless-runtime/). |
+| Batteries included | `threejs-debug-view/r3f` → `DebugViewLayer` | You want built-in views, layouts, and Leva controls with minimal setup. |
+| Controlled overlay | `threejs-debug-view/r3f` → `DebugViews` + `useDebugViewsControls` | Your app owns UI state or only needs part of the overlay. |
+
+Full walkthrough: [Quick Start](https://tonyblu331.github.io/threejs-debug-view/guides/quick-start/) · [Batteries Included](https://tonyblu331.github.io/threejs-debug-view/guides/batteries-included/) · [Live demo](https://tonyblu331.github.io/threejs-debug-view/demo/)
 
 ```tsx
 import { DebugViewLayer } from "threejs-debug-view/r3f"
@@ -30,23 +49,7 @@ function DebugLayer() {
 }
 ```
 
-That mounts the overlay, wires Leva controls on `document.body` (outside the R3F tree), and registers built-in sources such as beauty, normals, depth, material channels, wireframe, lighting-only, reflection-only, overlap, and shader cost. `DebugViewLayer` mounts the bundled Leva panel by default — no separate `<Leva />` import.
-
-| Layer | Import | Use when |
-| --- | --- | --- |
-| Batteries included | `threejs-debug-view/r3f` → `DebugViewLayer` | You want the default overlay with minimal setup. |
-| Controlled overlay | `threejs-debug-view/r3f` → `DebugViews` + `useDebugViewsControls` | Your app owns UI state or only needs part of the surface. |
-| Headless core | `threejs-debug-view` | You need render planning, TSL helpers, and the WebGPU pipeline runtime without React. See the [headless runtime guide](https://tonyblu331.github.io/threejs-debug-view/guides/headless-runtime/). |
-
-The hosted demo and Starlight docs explain layouts, overlap, and shader-cost sampling. They are not published to npm. See the [docs](https://tonyblu331.github.io/threejs-debug-view/guides/batteries-included/) for the full package split.
-
-## Install
-
-```bash
-pnpm add threejs-debug-view three react react-dom @react-three/fiber @react-three/drei leva
-```
-
-The root package is React-free. The `threejs-debug-view/r3f` adapter needs the React Three Fiber and Leva peers shown above.
+Keep debug views behind a dev flag unless you intentionally expose them in production.
 
 ## Status
 
@@ -57,19 +60,6 @@ The root package is React-free. The `threejs-debug-view/r3f` adapter needs the R
 - Not an `EffectComposer` helper.
 
 The runtime uses `three/webgpu`, `three/tsl`, WebGPU MRT passes, and fullscreen `RenderPipeline` composition.
-
-## Quick Start
-
-```tsx
-import { DebugViewLayer } from "threejs-debug-view/r3f"
-
-function DebugLayer() {
-  if (!import.meta.env.DEV) return null
-  return <DebugViewLayer />
-}
-```
-
-Keep the overlay behind your app's dev flag. The package is publishable, but debug views should not be mounted in production unless you intentionally expose them.
 
 ## What It Shows
 
@@ -94,7 +84,7 @@ The demo overlay hides the Leva `Enabled` toggle because the demo is always show
 
 `DebugViews` routes presentation from the props you provide. Simple layouts and pane assignments use the fullscreen TSL compositor. When a pane needs a custom camera or `resolutionScale`, it uses viewport/scissor presentation.
 
-`layout` and `paneCount` define the pane geometry. `viewportViews` assigns content to those panes. Use `split-diagonal` with `diagonalAngle` for a two-pane slanted split, or `breakdown` for a four-view diagonal material breakdown. The bundled controls clamp diagonal layouts to `45` degrees by default; `breakdown` starts at `25` degrees for a restrained ArtStation/Marmoset-style presentation.
+`layout` and `paneCount` define the pane geometry. `viewportViews` assigns content to those panes. Use `split-diagonal` with `diagonalAngle` for a two-pane slanted split, or `breakdown` for a four-view diagonal material breakdown. Diagonal layouts clamp to `45` degrees by default; `breakdown` starts at `25` degrees.
 
 ```tsx
 <DebugViews

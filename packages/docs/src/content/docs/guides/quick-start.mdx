@@ -1,23 +1,63 @@
 ---
 title: Quick Start
-description: Add the batteries-included debug overlay or wire your own controls.
+description: Install and integrate debug views with or without React Three Fiber.
 ---
 
-Install the package with the R3F peers you already use in a Three.js React app.
+Pick the path that matches your app. Both use the same WebGPU + TSL runtime; only the UI layer differs.
 
-```bash
-pnpm add threejs-debug-view three react react-dom @react-three/fiber @react-three/drei leva
-```
+## Install without R3F
 
-For a vanilla WebGPU app (no React), install only the library and Three.js:
+For a vanilla Three.js WebGPU app that owns its own render loop:
 
 ```bash
 pnpm add threejs-debug-view three
 ```
 
-See [Headless Runtime](/threejs-debug-view/guides/headless-runtime/) for the non-R3F integration path.
+Wire `createDebugPipelineRuntime` or `createDebugViewportRenderer` into your frame loop. No React, R3F, or Leva required.
 
-## Batteries included
+```ts
+import {
+  DEFAULT_DEBUG_VIEWS,
+  createDebugRenderPlan,
+  createDebugPipelineRuntime,
+  createDebugViewUniforms,
+  resolveDebugViewLayout,
+  updateDebugViewUniforms,
+} from "threejs-debug-view"
+import { WebGPURenderer } from "three/webgpu"
+
+const views = DEFAULT_DEBUG_VIEWS
+const layout = resolveDebugViewLayout("single")
+const plan = createDebugRenderPlan(views, 0, layout)
+const uniforms = createDebugViewUniforms()
+
+const runtime = createDebugPipelineRuntime(
+  scene,
+  camera,
+  plan,
+  layout,
+  renderer as WebGPURenderer,
+  uniforms,
+)
+
+function animate() {
+  updateDebugViewUniforms(uniforms, plan.activePipelineView, layout, plan.pipelineViews.length, 1)
+  runtime.pipeline.render()
+  requestAnimationFrame(animate)
+}
+```
+
+See [Headless Runtime](/threejs-debug-view/guides/headless-runtime/) for multi-pane layouts, viewport scaling, and when to use `createDebugViewportRenderer`.
+
+## Install with R3F
+
+For a React Three Fiber app, add the adapter peers:
+
+```bash
+pnpm add threejs-debug-view three react react-dom @react-three/fiber @react-three/drei leva
+```
+
+## Batteries included (R3F)
 
 Use `threejs-debug-view/r3f` when you want the default overlay with Leva controls and built-in views already wired.
 
@@ -30,13 +70,13 @@ function DebugLayer() {
 }
 ```
 
-That is the intended one-component integration path. Leva mounts on `document.body` automatically — you do not import or place `<Leva />` yourself unless you set `showLeva={false}` and use `DebugViewLeva` for custom shell placement.
+Mount `DebugLayer` inside your `<Canvas>`. Leva mounts on `document.body` automatically — you do not import or place `<Leva />` yourself unless you set `showLeva={false}` and use `DebugViewLeva` for custom shell placement.
 
-See [Batteries Included](/threejs-debug-view/guides/batteries-included/) for the full split between `/r3f`, the React-free root export, and the unpublished demo app.
+See [Batteries Included](/threejs-debug-view/guides/batteries-included/) for what ships out of the box, custom Leva placement, and the React-free core export.
 
-## Bring your own controls
+## Bring your own controls (R3F)
 
-Use the lower-level component and bundled hook from the same R3F entrypoint when your app owns UI state:
+Use the lower-level component and bundled hook when your app owns UI state:
 
 ```tsx
 import { DEFAULT_DEBUG_VIEWS, getDebugViewLabels } from "threejs-debug-view"
@@ -51,7 +91,7 @@ const controls = useDebugViewsControls({
 
 ## View a specific source
 
-If you want to pin one view from your own UI, pass `activeView` to `DebugViews`:
+Pin one view from your own UI by passing `activeView` to `DebugViews`:
 
 ```tsx
 const emissiveView = DEFAULT_DEBUG_VIEWS.findIndex((view) => view.source === "emissive")
@@ -64,7 +104,7 @@ const emissiveView = DEFAULT_DEBUG_VIEWS.findIndex((view) => view.source === "em
 />
 ```
 
-The demo uses this same pattern for capture URLs such as `?debugView=emissive`. It also supports `?scene=overdraw` to open the foliage overdraw scene instead of the main helmet/material-sphere scene.
+The demo uses this pattern for capture URLs such as `?debugView=emissive`. It also supports `?scene=overdraw` to open the foliage overdraw scene instead of the main helmet/material-sphere scene.
 
 For a fixed breakdown presentation shot (Normal, Shader Complexity, Albedo, Depth with labels and legends, Leva hidden), open `/?capture=social&scene=overdraw`. From the repository root, run `pnpm capture:social` while the Vite dev server is running to write `capture/breakdown-social-x.png`.
 
